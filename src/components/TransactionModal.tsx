@@ -1,27 +1,33 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAppDispatch } from "../hooks/useTypedDispatch";
+import { addIncome, fetchIncomes } from "../redux/income/incomeThunk";
 import { type Transaction, type TransactionType } from "../types/Transaction";
+import { type IncomeEntry } from "../types/Interface";
 
 interface TransactionModalProps {
   onClose: () => void;
-  onSubmit: (entry: Transaction) => void;
+   onSubmit: (entry: Omit<Transaction, "_id" | "type">) => Promise<void>;
   mode: "add" | "edit";
-  initialData?: Transaction;
+  initialData?: IncomeEntry;
   type: TransactionType;
 }
 
 const TransactionModal = ({
   onClose,
-  onSubmit,
   mode,
-  type,
   initialData,
+  type,
 }: TransactionModalProps) => {
+  const dispatch = useAppDispatch();
+
+  const today = new Date().toISOString().split("T")[0]; 
+
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
-    date: "",
+    date: today,
     description: "",
   });
 
@@ -36,7 +42,7 @@ const TransactionModal = ({
       setFormData({
         amount: initialData.amount.toString(),
         category: initialData.category,
-        date: initialData.date,
+        date: initialData.date.slice(0, 10), 
         description: initialData.description || "",
       });
     }
@@ -46,11 +52,7 @@ const TransactionModal = ({
     const newErrors = { amount: "", category: "", date: "" };
     let valid = true;
 
-    if (
-      !formData.amount ||
-      isNaN(Number(formData.amount)) ||
-      Number(formData.amount) <= 0
-    ) {
+    if (!formData.amount || isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
       newErrors.amount = "Amount must be a positive number";
       valid = false;
     }
@@ -69,29 +71,31 @@ const TransactionModal = ({
     return valid;
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return;
+  const handleSubmit = async () => {
+  if (!validate()) return;
 
-    const transaction: Transaction = {
-      id: initialData?.id || Date.now(),
-      type,
-      amount: Number(formData.amount),
-      category: formData.category,
-      date: formData.date,
-      description: formData.description,
-    };
+  const payload = {
+  amount: Number(formData.amount),
+  category: formData.category,
+  date: formData.date,
+  description: formData.description,
+};
 
-    onSubmit(transaction);
-  };
-
-  const color = type === "income" ? "blue" : "red";
+  try {
+    if (mode === "add" && type === "income") {
+      await dispatch(addIncome(payload)).unwrap();
+      await dispatch(fetchIncomes());
+    }
+    onClose();
+  } catch (error) {
+    console.error("Error submitting income:", error);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40 backdrop-blur-sm bg-transparent">
@@ -109,9 +113,8 @@ const TransactionModal = ({
           <X className="w-6 h-6" />
         </button>
 
-        <h2 className="cursor-pointer text-2xl font-bold mb-6 text-gray-800">
-          {mode === "add" ? "Add" : "Edit"}{" "}
-          {type === "income" ? "Income" : "Expense"}
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          {mode === "add" ? "Add" : "Edit"} Income
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -123,37 +126,25 @@ const TransactionModal = ({
               value={formData.amount}
               onChange={handleChange}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.amount
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
+                errors.amount ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="e.g. 1000"
             />
-            {errors.amount && (
-              <p className="text-sm text-red-600 mt-1">{errors.amount}</p>
-            )}
+            {errors.amount && <p className="text-sm text-red-600 mt-1">{errors.amount}</p>}
           </div>
 
           <div>
-            <label className="block font-medium mb-1">
-              {type === "income" ? "Source" : "Spent on"}
-            </label>
+            <label className="block font-medium mb-1">Source</label>
             <input
               name="category"
               value={formData.category}
               onChange={handleChange}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.category
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
+                errors.category ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder={
-                type === "income" ? "e.g. Freelance Project" : "e.g. Groceries"
-              }
+              placeholder="e.g. Freelance"
             />
-            {errors.category && (
-              <p className="text-sm text-red-600 mt-1">{errors.category}</p>
-            )}
+            {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
           </div>
 
           <div>
@@ -164,14 +155,10 @@ const TransactionModal = ({
               value={formData.date}
               onChange={handleChange}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.date
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
+                errors.date ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.date && (
-              <p className="text-sm text-red-600 mt-1">{errors.date}</p>
-            )}
+            {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
           </div>
 
           <div className="md:col-span-2">
@@ -181,7 +168,7 @@ const TransactionModal = ({
               rows={3}
               value={formData.description}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none focus:outline-none"
               placeholder="Optional"
             />
           </div>
@@ -190,13 +177,13 @@ const TransactionModal = ({
         <div className="mt-8 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 cursor-pointer rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium"
+            className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className={`px-6 py-2 rounded-lg bg-${color}-600 cursor-pointer hover:bg-${color}-700 text-white font-semibold`}
+            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
           >
             {mode === "add" ? "Save" : "Update"}
           </button>

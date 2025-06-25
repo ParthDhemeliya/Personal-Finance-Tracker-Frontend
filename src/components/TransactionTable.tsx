@@ -4,9 +4,10 @@ import { type Transaction, type TransactionType } from "../types/Transaction";
 interface TransactionTableProps {
   data: Transaction[];
   type: TransactionType;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onEdit?: (tx: Transaction) => void;
 }
+
 const TransactionTable = ({
   data,
   type,
@@ -30,7 +31,7 @@ const TransactionTable = ({
         <tbody>
           {data.map((tx, idx) => (
             <tr
-              key={tx.id}
+              key={tx._id}
               className={`${
                 idx % 2 === 0 ? "bg-white" : "bg-gray-50"
               } border-t border-gray-200 hover:bg-blue-50 transition`}
@@ -54,7 +55,13 @@ const TransactionTable = ({
                 </div>
               </td>
 
-              <td className="px-6 py-5 border-r">{tx.date}</td>
+              <td className="px-6 py-5 border-r">
+                {new Date(tx.date).toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </td>
 
               <td className="px-6 py-5 border-r text-gray-600">
                 {tx.description || "—"}
@@ -71,7 +78,7 @@ const TransactionTable = ({
                   </button>
                 )}
                 <button
-                  onClick={() => onDelete(tx.id)}
+                  onClick={() => onDelete(tx._id)}
                   className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1"
                 >
                   <Trash2 className="w-4 h-4" />

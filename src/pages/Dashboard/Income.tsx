@@ -1,39 +1,45 @@
-import { useState } from "react";
 import { Wallet, Plus } from "lucide-react";
-import { dummyTransactions } from "../../utils/dummyTransactions";
-import { type Transaction } from "../../types/Transaction";
+import { useState, useEffect } from "react";
 import TransactionModal from "../../components/TransactionModal";
 import TransactionTable from "../../components/TransactionTable";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { useAppSelector } from "../../hooks/useTypedSelector";
+import { fetchIncomes, addIncome, deleteIncome } from "../../redux/income/incomeThunk";
+import type { Transaction } from "../../types/Transaction";
 
 const Income = () => {
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(dummyTransactions);
+  const dispatch = useAppDispatch();
+  const { incomes, loading } = useAppSelector((state) => state.income);
   const [modalOpen, setModalOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
 
-  const incomeTransactions = transactions.filter((tx) => tx.type === "income");
+  useEffect(() => {
+    dispatch(fetchIncomes());
+  }, [dispatch]);
 
-  const handleAddOrUpdate = (entry: Transaction) => {
-    setTransactions((prev) => {
-      const exists = prev.find((t) => t.id === entry.id);
-      if (exists) {
-        return prev.map((t) => (t.id === entry.id ? entry : t));
-      } else {
-        return [entry, ...prev];
-      }
-    });
-    setModalOpen(false);
-    setEditTx(null);
+  const handleAddOrUpdate = async (entry: Omit<Transaction, "_id" | "type">) => {
+    try {
+      await dispatch(addIncome(entry)).unwrap();
+      dispatch(fetchIncomes());
+      setModalOpen(false);
+      setEditTx(null);
+    } catch (err) {
+      console.error("Add income failed:", err);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await dispatch(deleteIncome(id)).unwrap();
+      dispatch(fetchIncomes());
+    } catch (err) {
+      console.error("Delete income failed:", err);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-md border border-gray-200">
-        
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-3">
             <Wallet className="w-8 h-8 text-blue-600" />
@@ -53,13 +59,15 @@ const Income = () => {
           </button>
         </div>
 
-        
-        <TransactionTable
-          data={incomeTransactions}
-          type="income"
-          onDelete={handleDelete}
-        />
-
+        {loading ? (
+          <p className="text-center text-gray-500 italic">Loading incomes...</p>
+        ) : (
+          <TransactionTable
+            data={incomes as Transaction[]}
+            type="income"
+            onDelete={handleDelete}
+          />
+        )}
 
         {modalOpen && (
           <TransactionModal
@@ -72,5 +80,5 @@ const Income = () => {
       </div>
     </div>
   );
-}
+};
 export default Income;
