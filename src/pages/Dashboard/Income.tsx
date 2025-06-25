@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { Wallet, Plus } from "lucide-react";
 import { dummyTransactions } from "../../utils/dummyTransactions";
@@ -72,6 +73,12 @@ const Income = () => {
       </div>
     </div>
   );
+=======
+import React from "react";
+
+const Income = () => {
+  return <div>Incone</div>;
+>>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
 };
 
 export default Income;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { Wallet, Plus, IndianRupee } from "lucide-react";
 import { dummyTransactions } from "../../utils/dummyTransactions";
@@ -87,6 +88,12 @@ const Expense = () => {
       </div>
     </div>
   );
+=======
+import React from "react";
+
+const Expense = () => {
+  return <div>Expense</div>;
+>>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
 };
 
 export default Expense;

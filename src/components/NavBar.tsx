@@ -1,5 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+<<<<<<< HEAD
+=======
+// import logo from "../assets/logo.png";
+>>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
 import ProfilePopup from "../common/ProfilePopup";
 import { DollarSign } from "lucide-react";
 
@@ -45,6 +49,10 @@ const NavBar = () => {
       <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div className="px-3 py-3 lg:px-5 lg:pl-3 flex items-center justify-between relative">
           <Link to="/dashboard" className="flex items-center">
+<<<<<<< HEAD
+=======
+            {/* <img src={logo} alt="Logo" className="h-8 me-2" /> */}
+>>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
             <DollarSign className="h-8 w-8 me-2 text-blue-600" />
             <span className="text-xl font-semibold text-gray-900 dark:text-white">
               My Budget
