@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import { Wallet, Plus } from "lucide-react";
 import { dummyTransactions } from "../../utils/dummyTransactions";
@@ -34,7 +33,7 @@ const Income = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-md border border-gray-200">
-        {/* Header */}
+        
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-3">
             <Wallet className="w-8 h-8 text-blue-600" />
@@ -54,14 +53,14 @@ const Income = () => {
           </button>
         </div>
 
-        {/* Transaction Table */}
+        
         <TransactionTable
           data={incomeTransactions}
           type="income"
           onDelete={handleDelete}
         />
 
-        {/* Modal */}
+
         {modalOpen && (
           <TransactionModal
             onClose={() => setModalOpen(false)}
@@ -73,12 +72,5 @@ const Income = () => {
       </div>
     </div>
   );
-=======
-import React from "react";
-
-const Income = () => {
-  return <div>Incone</div>;
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
-};
-
+}
 export default Income;

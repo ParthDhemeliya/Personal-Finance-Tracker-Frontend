@@ -16,6 +16,7 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({
   user,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
+ 
   return (
     <div
       ref={popupRef}

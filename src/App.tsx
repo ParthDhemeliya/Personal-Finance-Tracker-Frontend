@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { lazy, Suspense } from "react";
-
+import ProtectedRoute from "./api/ProtectedRoute";
 const Login = lazy(() => import("./pages/Auth/Login"));
 const SignUp = lazy(() => import("./pages/Auth/SignUp"));
 const Income = lazy(() => import("./pages/Dashboard/Income"));
@@ -22,18 +22,20 @@ const App = () => {
       >
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          {/* Auth */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
 
-          {/* Dashboard Layout */}
-          <Route element={<DashboardLayout />}>
+           <Route
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="/dashboard" element={<Dashboard />} />{" "}
-            {/* <-- Add or uncomment this line */}
             <Route path="/income" element={<Income />} />
             <Route path="/expense" element={<Expense />} />
           </Route>
-
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>

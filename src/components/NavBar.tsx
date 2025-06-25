@@ -1,18 +1,33 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
-<<<<<<< HEAD
-=======
-// import logo from "../assets/logo.png";
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
+import { useState, useRef, useEffect, use } from "react";
 import ProfilePopup from "../common/ProfilePopup";
 import { DollarSign } from "lucide-react";
-
+import { type RootState } from "../redux/store";
+import { useAppSelector } from "../hooks/useTypedSelector";
+import { useAppDispatch } from "../hooks/useTypedDispatch";
+import { fetchUser } from "../redux/auth/authThunk";
 const NavBar = () => {
   const Neviagate = useNavigate();
   const location = useLocation();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+const dispatch = useAppDispatch();
 
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    dispatch(fetchUser());
+  }
+}, []);
+ const user = useAppSelector((state: RootState) => state.auth.user)
+ const userName =
+  user?.email && typeof user.email === "string"
+    ? user.email
+        .split("@")[0]              
+        .split(".")[0]
+        .replace(/^\w/, (c) => c.toUpperCase()) 
+    : "User";
+  console.log(user);
   const isActive = (path: string) =>
     location.pathname === path ? "bg-gray-100 dark:bg-gray-700" : "";
 
@@ -38,21 +53,17 @@ const NavBar = () => {
     };
   }, [isPopupOpen]);
   const handleLogout = () => {
-    // Clear auth tokens, user state, etc.
     localStorage.removeItem("token");
-    // Redirect to login page
     Neviagate("/");
     setIsPopupOpen(false);
   };
+
   return (
     <div>
       <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div className="px-3 py-3 lg:px-5 lg:pl-3 flex items-center justify-between relative">
           <Link to="/dashboard" className="flex items-center">
-<<<<<<< HEAD
-=======
-            {/* <img src={logo} alt="Logo" className="h-8 me-2" /> */}
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
+            {/* <img src={logo} alt="Logo" className="h-8 me-2" /> */} 
             <DollarSign className="h-8 w-8 me-2 text-blue-600" />
             <span className="text-xl font-semibold text-gray-900 dark:text-white">
               My Budget
@@ -69,14 +80,14 @@ const NavBar = () => {
                 alt="User"
               />
               <span className="hidden sm:inline text-sm font-medium dark:text-white">
-                Neil Sims
+                {userName}
               </span>
             </div>
             {isPopupOpen && (
               <ProfilePopup
                 user={{
-                  name: "Neil Sims",
-                  email: "neil@example.com",
+                  name: userName,
+                  email: user?.email,
                   profile:
                     "https://flowbite.com/docs/images/people/profile-picture-5.jpg",
                 }}

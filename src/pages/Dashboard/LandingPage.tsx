@@ -7,15 +7,31 @@ import {
   PieChart,
   TrendingUp,
 } from "lucide-react";
+import { useEffect } from "react";
+import {jwtDecode} from "jwt-decode";
+const LandingPage = () => {
 
-export default function LandingPage() {
   const navigate = useNavigate();
+    useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      try {
+        const decoded: { exp: number } = jwtDecode(token);
+        const isExpired = decoded.exp * 1000 < Date.now();
+
+        if (!isExpired) {
+          navigate("/dashboard");
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (err) {
+        localStorage.removeItem("token"); 
+      }
+    }
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-<<<<<<< HEAD
-=======
-      {/* Header */}
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -42,11 +58,6 @@ export default function LandingPage() {
           </div>
         </nav>
       </header>
-<<<<<<< HEAD
-=======
-
-      {/* Hero Section */}
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -59,9 +70,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            {/* if login then redirect to dashboard if not then redirect to login
-            page */}
-            <Link to="/dashboard">
+            <Link to="/signup">
               <button
                 type="button"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded text-lg flex items-center justify-center"
@@ -72,10 +81,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Feature Cards */}
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
+
           <div className="grid md:grid-cols-3 gap-8 mt-16">
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
@@ -118,11 +124,7 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
-<<<<<<< HEAD
-=======
 
-      {/* Footer */}
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
       <footer className="container mx-auto px-4 py-8 mt-16">
         <div className="text-center text-gray-600">
           <p>&copy; 2024 FinanceTracker. All rights reserved.</p>
@@ -131,3 +133,5 @@ export default function LandingPage() {
     </div>
   );
 }
+export default LandingPage;
+

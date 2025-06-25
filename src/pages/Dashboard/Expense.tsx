@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import { Wallet, Plus, IndianRupee } from "lucide-react";
 import { dummyTransactions } from "../../utils/dummyTransactions";
@@ -49,8 +48,6 @@ const Expense = () => {
             Add Expense
           </button>
         </div>
-
-        {/* Total Expense Summary */}
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-center gap-2">
           <IndianRupee className="text-red-600 w-5 h-5" />
           <h2 className="text-lg font-semibold text-gray-800">
@@ -60,8 +57,6 @@ const Expense = () => {
             </span>
           </h2>
         </div>
-
-        {/* Transaction Table */}
         <TransactionTable
           data={expenseTransactions}
           type="expense"
@@ -72,7 +67,7 @@ const Expense = () => {
           }}
         />
 
-        {/* Modal */}
+        
         {modalOpen && (
           <TransactionModal
             onClose={() => {
@@ -88,12 +83,6 @@ const Expense = () => {
       </div>
     </div>
   );
-=======
-import React from "react";
-
-const Expense = () => {
-  return <div>Expense</div>;
->>>>>>> 8607ba398343d89c29d3774d8c53a840e0140895
-};
+}
 
 export default Expense;
