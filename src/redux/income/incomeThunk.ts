@@ -19,20 +19,15 @@ export const fetchIncomes = createAsyncThunk(
 
 // Add income
 export const addIncome = createAsyncThunk(
-  "income/add",
-  async (
-    data: Omit<IncomeEntry, "_id" | "type">, // ✅ removed `type`
-    thunkAPI,
-  ) => {
+  "income/addIncome",
+  async (incomeData: Omit<IncomeEntry, "_id">, thunkAPI) => {
     try {
-      const res = await axios.post("/v1/incomes", data);
-      return res.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to add income",
-      );
+      const response = await axios.post("/api/v1/incomes", incomeData);
+      return response.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue("Failed to add income");
     }
-  },
+  }
 );
 
 //  Update income

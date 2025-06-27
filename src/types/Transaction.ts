@@ -1,13 +1,13 @@
 export type TransactionType = "income" | "expense";
 
-export interface Transaction {
-  _id: string; 
-  type: TransactionType;
+export interface ITransaction {
+  _id: string;
+  type: 'income' | 'expense';
   amount: number;
   category: string;
   date: string;
   description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'other'; 
+  currency?: string;
   user?: string;
 }

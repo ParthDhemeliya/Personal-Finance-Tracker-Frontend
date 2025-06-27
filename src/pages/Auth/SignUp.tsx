@@ -9,6 +9,8 @@ const SignUp = () => {
   const dispatch = useAppDispatch();
 
   const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -25,11 +27,16 @@ const SignUp = () => {
     }
 
     const resultAction = await dispatch(
-      registerUser({ email: form.email, password: form.password })
+      registerUser({
+        first_name: form.first_name,
+        last_name: form.last_name,
+        email: form.email,
+        password: form.password,
+      }),
     );
 
     if (registerUser.fulfilled.match(resultAction)) {
-      navigate("/dashboard"); 
+      navigate("/dashboard");
     } else {
       alert("Signup failed");
     }
@@ -52,6 +59,27 @@ const SignUp = () => {
             </h1>
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
               <input
+                type="text"
+                name="first_name"
+                id="first_name"
+                onChange={handleChange}
+                value={form.first_name}
+                required
+                placeholder="First Name"
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+
+              <input
+                type="text"
+                name="last_name"
+                id="last_name"
+                onChange={handleChange}
+                value={form.last_name}
+                required
+                placeholder="Last Name"
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              <input
                 type="email"
                 name="email"
                 id="email"
@@ -69,7 +97,7 @@ const SignUp = () => {
                 onChange={handleChange}
                 value={form.password}
                 required
-                placeholder="••••••••"
+                placeholder="password"
                 className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
 
@@ -80,7 +108,7 @@ const SignUp = () => {
                 onChange={handleChange}
                 value={form.confirmPassword}
                 required
-                placeholder="••••••••"
+                placeholder="confirm password"
                 className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
 

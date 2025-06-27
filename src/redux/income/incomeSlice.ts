@@ -1,6 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 // import { fetchIncomes, addIncome, updateIncome, deleteIncome } from "";
-import { fetchIncomes,addIncome, updateIncome, deleteIncome } from "./incomeThunk";
+import {
+  fetchIncomes,
+  addIncome,
+  updateIncome,
+  deleteIncome,
+} from "./incomeThunk";
 import { type IncomeEntry } from "../../types/Interface";
 
 interface IncomeState {
@@ -42,7 +47,9 @@ const incomeSlice = createSlice({
 
       // Update
       .addCase(updateIncome.fulfilled, (state, action) => {
-        const index = state.incomes.findIndex((i) => i._id === action.payload._id);
+        const index = state.incomes.findIndex(
+          (i) => i._id === action.payload._id,
+        );
         if (index !== -1) state.incomes[index] = action.payload;
       })
 

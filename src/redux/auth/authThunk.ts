@@ -2,6 +2,8 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../../api/axiosInstance";
 
 interface AuthPayload {
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
 }
@@ -22,9 +24,14 @@ export const loginUser = createAsyncThunk(
 
 export const registerUser = createAsyncThunk(
   "auth/register",
-  async ({ email, password }: AuthPayload, thunkAPI) => {
+  async ({ first_name, last_name, email, password }: AuthPayload, thunkAPI) => {
     try {
-      const response = await axios.post("/auth/signup", { email, password });
+      const response = await axios.post("/auth/signup", {
+        first_name,
+        last_name,
+        email,
+        password,
+      });
       localStorage.setItem("token", response.data.token);
       return response.data;
     } catch (err: any) {
@@ -32,6 +39,7 @@ export const registerUser = createAsyncThunk(
     }
   }
 );
+
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, { rejectWithValue }) => {

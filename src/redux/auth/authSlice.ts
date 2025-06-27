@@ -2,7 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 import { loginUser, registerUser, fetchUser } from "./authThunk";
 
 interface AuthState {
-  user: { id: string; email: string } | null;
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  } | null;
   token: string | null;
   loading: boolean;
   error: string | null;
@@ -27,14 +32,18 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = { id: action.payload.id, email: action.payload.email };
+        state.user = {
+          id: action.payload.id,
+          email: action.payload.email,
+          first_name: action.payload.first_name,
+          last_name: action.payload.last_name,
+        };
         state.token = action.payload.token;
         localStorage.setItem("token", action.payload.token);
       })
@@ -43,14 +52,18 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Signup
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = { id: action.payload.id, email: action.payload.email };
+        state.user = {
+          id: action.payload.id,
+          email: action.payload.email,
+          first_name: action.payload.first_name,
+          last_name: action.payload.last_name,
+        };
         state.token = action.payload.token;
         localStorage.setItem("token", action.payload.token);
       })
@@ -59,7 +72,6 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Fetch user info
       .addCase(fetchUser.pending, (state) => {
         state.loading = true;
       })
@@ -68,6 +80,8 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload._id,
           email: action.payload.email,
+          first_name: action.payload.first_name,
+          last_name: action.payload.last_name,
         };
       })
       .addCase(fetchUser.rejected, (state, action) => {

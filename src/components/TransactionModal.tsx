@@ -3,14 +3,24 @@ import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useTypedDispatch";
 import { addIncome, fetchIncomes } from "../redux/income/incomeThunk";
-import { type Transaction, type TransactionType } from "../types/Transaction";
-import { type IncomeEntry } from "../types/Interface";
+// import { addExpense} from "../redux/expense/expenseThunk";
+import { type ITransaction, type TransactionType } from "../types/Transaction";
+import type { IncomeEntry, ExpenseEntry } from "../types/Interface";
+import type { PaymentMethod } from "../types/commonTypes";
+
+type FormData = {
+  amount: string;
+  category: string;
+  date: string;
+  description: string;
+  paymentMethod: PaymentMethod;
+};
 
 interface TransactionModalProps {
   onClose: () => void;
-   onSubmit: (entry: Omit<Transaction, "_id" | "type">) => Promise<void>;
+  onSubmit: (entry: Omit<ITransaction, "_id" | "type">) => Promise<void>;
   mode: "add" | "edit";
-  initialData?: IncomeEntry;
+  initialData?: IncomeEntry | ExpenseEntry;
   type: TransactionType;
 }
 
@@ -21,14 +31,14 @@ const TransactionModal = ({
   type,
 }: TransactionModalProps) => {
   const dispatch = useAppDispatch();
+  const today = new Date().toISOString().split("T")[0];
 
-  const today = new Date().toISOString().split("T")[0]; 
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     amount: "",
     category: "",
     date: today,
     description: "",
+    paymentMethod: "cash",
   });
 
   const [errors, setErrors] = useState({
@@ -41,24 +51,33 @@ const TransactionModal = ({
     if (initialData) {
       setFormData({
         amount: initialData.amount.toString(),
-        category: initialData.category,
-        date: initialData.date.slice(0, 10), 
+        category:
+          type === "income"
+            ? (initialData as IncomeEntry).incomeSource
+            : (initialData as ExpenseEntry).expenseCategory,
+        date: initialData.date.slice(0, 10),
         description: initialData.description || "",
+        paymentMethod: initialData.paymentMethod || "cash",
       });
     }
-  }, [initialData]);
+  }, [initialData, type]);
 
   const validate = () => {
     const newErrors = { amount: "", category: "", date: "" };
     let valid = true;
 
-    if (!formData.amount || isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+    if (
+      !formData.amount ||
+      isNaN(Number(formData.amount)) ||
+      Number(formData.amount) <= 0
+    ) {
       newErrors.amount = "Amount must be a positive number";
       valid = false;
     }
 
     if (!formData.category.trim()) {
-      newErrors.category = "Category is required";
+      newErrors.category =
+        type === "income" ? "Source is required" : "Category is required";
       valid = false;
     }
 
@@ -71,31 +90,53 @@ const TransactionModal = ({
     return valid;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "paymentMethod" ? (value as PaymentMethod) : value,
+    }));
   };
 
   const handleSubmit = async () => {
-  if (!validate()) return;
+    if (!validate()) return;
 
-  const payload = {
-  amount: Number(formData.amount),
-  category: formData.category,
-  date: formData.date,
-  description: formData.description,
-};
+    const commonPayload = {
+      amount: Number(formData.amount),
+      date: formData.date,
+      description: formData.description,
+      paymentMethod: formData.paymentMethod,
+      type, // ✅ include type explicitly
+    };
 
-  try {
-    if (mode === "add" && type === "income") {
-      await dispatch(addIncome(payload)).unwrap();
-      await dispatch(fetchIncomes());
+    const payload =
+      type === "income"
+        ? { ...commonPayload, incomeSource: formData.category }
+        : { ...commonPayload, expenseCategory: formData.category };
+
+    try {
+      if (mode === "add") {
+        if (type === "income") {
+          await dispatch(
+            addIncome(payload as Omit<IncomeEntry, "_id">),
+          ).unwrap();
+          await dispatch(fetchIncomes());
+        } else {
+          // Uncomment and implement these when expense logic is ready
+          // await dispatch(addExpense(payload)).unwrap();
+          // await dispatch(fetchExpenses());
+        }
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Error submitting transaction:", error);
     }
-    onClose();
-  } catch (error) {
-    console.error("Error submitting income:", error);
-  }
-};
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40 backdrop-blur-sm bg-transparent">
@@ -114,7 +155,8 @@ const TransactionModal = ({
         </button>
 
         <h2 className="text-2xl font-bold mb-6 text-gray-800">
-          {mode === "add" ? "Add" : "Edit"} Income
+          {mode === "add" ? "Add" : "Edit"}{" "}
+          {type === "income" ? "Income" : "Expense"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -130,11 +172,15 @@ const TransactionModal = ({
               }`}
               placeholder="e.g. 1000"
             />
-            {errors.amount && <p className="text-sm text-red-600 mt-1">{errors.amount}</p>}
+            {errors.amount && (
+              <p className="text-sm text-red-600 mt-1">{errors.amount}</p>
+            )}
           </div>
 
           <div>
-            <label className="block font-medium mb-1">Source</label>
+            <label className="block font-medium mb-1">
+              {type === "income" ? "Source of Income" : "Expense Category"}
+            </label>
             <input
               name="category"
               value={formData.category}
@@ -142,9 +188,13 @@ const TransactionModal = ({
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
                 errors.category ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="e.g. Freelance"
+              placeholder={
+                type === "income" ? "e.g. Freelance" : "e.g. Food, Rent"
+              }
             />
-            {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
+            {errors.category && (
+              <p className="text-sm text-red-600 mt-1">{errors.category}</p>
+            )}
           </div>
 
           <div>
@@ -158,7 +208,24 @@ const TransactionModal = ({
                 errors.date ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
+            {errors.date && (
+              <p className="text-sm text-red-600 mt-1">{errors.date}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1">Payment Method</label>
+            <select
+              name="paymentMethod"
+              value={formData.paymentMethod}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+            >
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="other">Other</option>
+            </select>
           </div>
 
           <div className="md:col-span-2">

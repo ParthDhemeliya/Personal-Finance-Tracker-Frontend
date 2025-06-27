@@ -1,11 +1,12 @@
 import { IndianRupee, Pencil, Trash2 } from "lucide-react";
-import { type Transaction, type TransactionType } from "../types/Transaction";
+import { type ITransaction, type TransactionType } from "../types/Transaction";
+import type { IncomeEntry } from "../types/Interface";
 
 interface TransactionTableProps {
-  data: Transaction[];
+  data: IncomeEntry[];
   type: TransactionType;
   onDelete: (id: string) => void;
-  onEdit?: (tx: Transaction) => void;
+  onEdit?: (tx: ITransaction) => void;
 }
 
 const TransactionTable = ({
@@ -44,7 +45,7 @@ const TransactionTable = ({
                       : "bg-red-100 text-red-700"
                   }`}
                 >
-                  {tx.category}
+                  {tx._id}
                 </span>
               </td>
 
@@ -70,7 +71,7 @@ const TransactionTable = ({
               <td className="px-6 py-5 flex gap-3 items-center">
                 {type === "expense" && onEdit && (
                   <button
-                    onClick={() => onEdit(tx)}
+                    onClick={() => onEdit(tx._id)}
                     className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
                   >
                     <Pencil className="w-4 h-4" />
