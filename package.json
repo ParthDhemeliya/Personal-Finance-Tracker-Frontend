@@ -8,11 +8,18 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "husky:install": "husky install",
+    "husky:provide": "npx husky add .husky/pre-commit 'yarn lint-staged'",
+    "lint-staged": "lint-staged"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "eslint --fix",
+    "src/**/*.{js,jsx,ts,tsx,json,css,scss}": [
       "prettier --write"
     ]
   },
