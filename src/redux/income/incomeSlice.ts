@@ -1,63 +1,100 @@
-import { createSlice } from "@reduxjs/toolkit";
-// import { fetchIncomes, addIncome, updateIncome, deleteIncome } from "";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
   fetchIncomes,
+  fetchPaginatedIncomes,
   addIncome,
   updateIncome,
   deleteIncome,
+  fetchTotalIncome,
 } from "./incomeThunk";
 import { type IncomeEntry } from "../../types/Interface";
 
 interface IncomeState {
-  incomes: IncomeEntry[];
+  data: IncomeEntry[];
+  total: number;
+  currentPage: number;
+  totalPages: number;
   loading: boolean;
   error: string | null;
+  overallTotalIncome: number;
 }
 
 const initialState: IncomeState = {
-  incomes: [],
+  data: [],
+  total: 0,
+  currentPage: 1,
+  totalPages: 1,
   loading: false,
   error: null,
+  overallTotalIncome: 0,
 };
 
 const incomeSlice = createSlice({
   name: "income",
   initialState,
-  reducers: {},
+  reducers: {
+    setPage(state, action: PayloadAction<number>) {
+      state.currentPage = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Fetch
+      //  Paginated fetch
+      .addCase(fetchPaginatedIncomes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPaginatedIncomes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload.data;
+        state.total = action.payload.total;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+      })
+      .addCase(fetchPaginatedIncomes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      //  Fallback: Full fetch (optional)
       .addCase(fetchIncomes.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchIncomes.fulfilled, (state, action) => {
-        state.incomes = action.payload;
         state.loading = false;
+        state.data = action.payload;
       })
       .addCase(fetchIncomes.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
-      // Add
-      .addCase(addIncome.fulfilled, (state, action) => {
-        state.incomes.push(action.payload);
+      //  Add income (no-op: component triggers re-fetch)
+      .addCase(addIncome.fulfilled, () => {
+        // no-op
       })
 
-      // Update
+      // Update income in-place
       .addCase(updateIncome.fulfilled, (state, action) => {
-        const index = state.incomes.findIndex(
-          (i) => i._id === action.payload._id,
-        );
-        if (index !== -1) state.incomes[index] = action.payload;
+        const index = state.data.findIndex((i) => i._id === action.payload._id);
+        if (index !== -1) {
+          state.data[index] = action.payload;
+        }
       })
 
-      // Delete
-      .addCase(deleteIncome.fulfilled, (state, action) => {
-        state.incomes = state.incomes.filter((i) => i._id !== action.payload);
+      // Delete income (no-op: component triggers re-fetch)
+      .addCase(deleteIncome.fulfilled, () => {
+        // no-op
+      })
+      .addCase(fetchTotalIncome.fulfilled, (state, action) => {
+        state.overallTotalIncome = action.payload;
+      })
+      .addCase(fetchTotalIncome.rejected, (_action, action) => {
+        console.error("Failed to fetch total income:", action.payload);
       });
   },
 });
 
+export const { setPage } = incomeSlice.actions;
 export default incomeSlice.reducer;

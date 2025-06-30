@@ -1,18 +1,33 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../../api/axiosInstance";
 import { type IncomeEntry } from "../../types/Interface";
+import getErrorMessage from "../../utils/getErrorMessage";
 
-//  Fetch all incomes
+// Fetch all incomes (non-paginated fallback)
 export const fetchIncomes = createAsyncThunk(
   "income/fetchAll",
   async (_, thunkAPI) => {
     try {
       const res = await axios.get("/v1/incomes");
       return res.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to fetch incomes",
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
+    }
+  },
+);
+
+//  Fetch paginated incomes
+export const fetchPaginatedIncomes = createAsyncThunk(
+  "income/fetchPaginated",
+  async ({ page, limit }: { page: number; limit: number }, thunkAPI) => {
+    try {
+      const res = await axios.get(
+        `/v1/incomes/paginated?page=${page}&limit=${limit}`,
       );
+
+      return res.data;
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
 );
@@ -22,12 +37,12 @@ export const addIncome = createAsyncThunk(
   "income/addIncome",
   async (incomeData: Omit<IncomeEntry, "_id">, thunkAPI) => {
     try {
-      const response = await axios.post("/api/v1/incomes", incomeData);
+      const response = await axios.post("/v1/incomes", incomeData);
       return response.data;
-    } catch (err) {
-      return thunkAPI.rejectWithValue("Failed to add income");
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
-  }
+  },
 );
 
 //  Update income
@@ -40,10 +55,8 @@ export const updateIncome = createAsyncThunk(
     try {
       const res = await axios.put(`/v1/incomes/${id}`, data);
       return res.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to update income",
-      );
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
 );
@@ -54,11 +67,22 @@ export const deleteIncome = createAsyncThunk(
   async (id: string, thunkAPI) => {
     try {
       await axios.delete(`/v1/incomes/${id}`);
-      return id; // return ID so reducer can filter it out
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to delete income",
-      );
+      return id;
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
+    }
+  },
+);
+
+//total income
+export const fetchTotalIncome = createAsyncThunk(
+  "income/fetchTotalIncome",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axios.get("/v1/incomes/total");
+      return res.data.total;
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
 );

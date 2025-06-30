@@ -5,25 +5,26 @@ import {
   PieChart,
   ArrowUpIcon,
   ArrowDownIcon,
-  Home,
+  // Home,
 } from "lucide-react";
 
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome back!</h1>
-          <p className="text-gray-600">Here's your financial overview for this month.</p>
+          <p className="text-gray-600">
+            Here's your financial overview for this month.
+          </p>
         </div>
 
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-
           <div className="bg-white p-6 rounded-xl shadow border">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">Total Balance</h3>
+              <h3 className="text-sm font-semibold text-gray-500">
+                Total Balance
+              </h3>
               <DollarSign className="w-5 h-5 text-gray-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900">₹12,345</div>
@@ -33,10 +34,11 @@ const Dashboard = () => {
             </p>
           </div>
 
-
           <div className="bg-white p-6 rounded-xl shadow border">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">Monthly Income</h3>
+              <h3 className="text-sm font-semibold text-gray-500">
+                Monthly Income
+              </h3>
               <TrendingUp className="w-5 h-5 text-gray-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900">₹8,200</div>
@@ -46,10 +48,11 @@ const Dashboard = () => {
             </p>
           </div>
 
-
           <div className="bg-white p-6 rounded-xl shadow border">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">Monthly Expenses</h3>
+              <h3 className="text-sm font-semibold text-gray-500">
+                Monthly Expenses
+              </h3>
               <CreditCard className="w-5 h-5 text-gray-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900">₹5,650</div>
@@ -59,10 +62,11 @@ const Dashboard = () => {
             </p>
           </div>
 
-
           <div className="bg-white p-6 rounded-xl shadow border">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">Savings Goal</h3>
+              <h3 className="text-sm font-semibold text-gray-500">
+                Savings Goal
+              </h3>
               <PieChart className="w-5 h-5 text-gray-400" />
             </div>
             <div className="text-2xl font-bold text-gray-900">68%</div>
@@ -70,13 +74,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           <div className="bg-white rounded-xl shadow border p-6">
             <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
             <div className="space-y-4">
-
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -119,10 +120,30 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold mb-4">Budget Overview</h3>
             <div className="space-y-5">
               {[
-                { category: "Food & Dining", current: 456, max: 600, color: "bg-blue-600" },
-                { category: "Transportation", current: 234, max: 400, color: "bg-green-600" },
-                { category: "Entertainment", current: 189, max: 300, color: "bg-yellow-500" },
-                { category: "Shopping", current: 345, max: 250, color: "bg-red-600" },
+                {
+                  category: "Food & Dining",
+                  current: 456,
+                  max: 600,
+                  color: "bg-blue-600",
+                },
+                {
+                  category: "Transportation",
+                  current: 234,
+                  max: 400,
+                  color: "bg-green-600",
+                },
+                {
+                  category: "Entertainment",
+                  current: 189,
+                  max: 300,
+                  color: "bg-yellow-500",
+                },
+                {
+                  category: "Shopping",
+                  current: 345,
+                  max: 250,
+                  color: "bg-red-600",
+                },
               ].map((item, index) => {
                 const percent = Math.min((item.current / item.max) * 100, 100);
                 return (
@@ -134,7 +155,10 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full">
-                      <div className={`${item.color} h-2 rounded-full`} style={{ width: `${percent}%` }} />
+                      <div
+                        className={`${item.color} h-2 rounded-full`}
+                        style={{ width: `${percent}%` }}
+                      />
                     </div>
                     {item.current > item.max && (
                       <p className="text-xs text-red-600 mt-1">

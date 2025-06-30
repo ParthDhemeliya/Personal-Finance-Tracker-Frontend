@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAppDispatch } from "../hooks/useTypedDispatch";
-import { addIncome, fetchIncomes } from "../redux/income/incomeThunk";
-// import { addExpense} from "../redux/expense/expenseThunk";
 import { type ITransaction, type TransactionType } from "../types/Transaction";
-import type { IncomeEntry, ExpenseEntry } from "../types/Interface";
+
 import type { PaymentMethod } from "../types/commonTypes";
+
+interface CategoryOption {
+  _id: string;
+  name: string;
+}
 
 type FormData = {
   amount: string;
-  category: string;
+  categoryId: string;
   date: string;
   description: string;
   paymentMethod: PaymentMethod;
@@ -20,50 +22,65 @@ interface TransactionModalProps {
   onClose: () => void;
   onSubmit: (entry: Omit<ITransaction, "_id" | "type">) => Promise<void>;
   mode: "add" | "edit";
-  initialData?: IncomeEntry | ExpenseEntry;
+  initialData?: ITransaction;
   type: TransactionType;
 }
 
+const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id.trim());
+
 const TransactionModal = ({
   onClose,
+  onSubmit,
   mode,
-  initialData,
   type,
+  initialData,
 }: TransactionModalProps) => {
-  const dispatch = useAppDispatch();
   const today = new Date().toISOString().split("T")[0];
 
+  console.log(initialData, "vvvvv");
   const [formData, setFormData] = useState<FormData>({
     amount: "",
-    category: "",
+    categoryId: "",
     date: today,
     description: "",
     paymentMethod: "cash",
   });
 
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
   const [errors, setErrors] = useState({
     amount: "",
-    category: "",
+    categoryId: "",
     date: "",
   });
 
+  // Set initial data in edit mode
   useEffect(() => {
-    if (initialData) {
+    if (mode === "edit" && initialData) {
       setFormData({
         amount: initialData.amount.toString(),
-        category:
-          type === "income"
-            ? (initialData as IncomeEntry).incomeSource
-            : (initialData as ExpenseEntry).expenseCategory,
-        date: initialData.date.slice(0, 10),
+        categoryId: initialData.category || "", // 🔥 FIXED LINE
+        date: initialData.date.split("T")[0],
         description: initialData.description || "",
-        paymentMethod: initialData.paymentMethod || "cash",
+        paymentMethod: initialData.paymentMethod,
       });
     }
-  }, [initialData, type]);
+  }, [mode, initialData]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/categories?type=${type}`);
+        const data = await res.json();
+        setCategoryOptions(data);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    };
+    fetchCategories();
+  }, [type]);
 
   const validate = () => {
-    const newErrors = { amount: "", category: "", date: "" };
+    const newErrors = { amount: "", categoryId: "", date: "" };
     let valid = true;
 
     if (
@@ -75,9 +92,8 @@ const TransactionModal = ({
       valid = false;
     }
 
-    if (!formData.category.trim()) {
-      newErrors.category =
-        type === "income" ? "Source is required" : "Category is required";
+    if (!formData.categoryId.trim()) {
+      newErrors.categoryId = "Category is required";
       valid = false;
     }
 
@@ -101,37 +117,25 @@ const TransactionModal = ({
       [name]: name === "paymentMethod" ? (value as PaymentMethod) : value,
     }));
   };
-
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    const commonPayload = {
+    const isObjectId = isValidObjectId(formData.categoryId.trim());
+
+    const transactionPayload: Omit<ITransaction, "_id" | "type"> = {
       amount: Number(formData.amount),
       date: formData.date,
       description: formData.description,
       paymentMethod: formData.paymentMethod,
-      type, // ✅ include type explicitly
+      currency: "USD",
+      ...(isObjectId
+        ? { incomeSource: formData.categoryId }
+        : { customIncomeSource: formData.categoryId }),
+      category: formData.categoryId,
     };
 
-    const payload =
-      type === "income"
-        ? { ...commonPayload, incomeSource: formData.category }
-        : { ...commonPayload, expenseCategory: formData.category };
-
     try {
-      if (mode === "add") {
-        if (type === "income") {
-          await dispatch(
-            addIncome(payload as Omit<IncomeEntry, "_id">),
-          ).unwrap();
-          await dispatch(fetchIncomes());
-        } else {
-          // Uncomment and implement these when expense logic is ready
-          // await dispatch(addExpense(payload)).unwrap();
-          // await dispatch(fetchExpenses());
-        }
-      }
-
+      await onSubmit(transactionPayload);
       onClose();
     } catch (error) {
       console.error("Error submitting transaction:", error);
@@ -149,7 +153,7 @@ const TransactionModal = ({
       >
         <button
           onClick={onClose}
-          className="cursor-pointer absolute top-4 right-4 text-gray-600 hover:text-red-600"
+          className="absolute top-4 right-4 text-gray-600 hover:text-red-600"
         >
           <X className="w-6 h-6" />
         </button>
@@ -182,18 +186,22 @@ const TransactionModal = ({
               {type === "income" ? "Source of Income" : "Expense Category"}
             </label>
             <input
-              name="category"
-              value={formData.category}
+              list="category-options"
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.category ? "border-red-500" : "border-gray-300"
+                errors.categoryId ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder={
-                type === "income" ? "e.g. Freelance" : "e.g. Food, Rent"
-              }
+              placeholder="Type or select"
             />
-            {errors.category && (
-              <p className="text-sm text-red-600 mt-1">{errors.category}</p>
+            <datalist id="category-options">
+              {categoryOptions.map((cat) => (
+                <option key={cat._id} value={cat.name} />
+              ))}
+            </datalist>
+            {errors.categoryId && (
+              <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>
             )}
           </div>
 
@@ -244,13 +252,13 @@ const TransactionModal = ({
         <div className="mt-8 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium"
+            className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
           >
             {mode === "add" ? "Save" : "Update"}
           </button>

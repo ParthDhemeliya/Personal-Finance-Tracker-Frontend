@@ -1,15 +1,4 @@
-import type { PaymentMethod } from "./commonTypes"; 
-// export interface IncomeEntry {
-//   _id: string;
-//   amount: number;
-//   category: string;
-//   date: string;
-//   description?: string;
-//   paymentMethod: PaymentMethod;
-//   type: "income"; 
-// }
-
-// export type PaymentMethod = "cash" | "card" | "bank_transfer" | "other";
+import type { PaymentMethod } from "./commonTypes";
 
 interface BaseTransaction {
   _id: string;
@@ -23,7 +12,8 @@ interface BaseTransaction {
 // Specific for income
 export interface IncomeEntry extends BaseTransaction {
   type: "income";
-  incomeSource: string; // ObjectId from Category
+  incomeSource: string | { _id: string; name: string; color: string } | null;
+  customIncomeSource?: string | null;
 }
 
 // Specific for expense

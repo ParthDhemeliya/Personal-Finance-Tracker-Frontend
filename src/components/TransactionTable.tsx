@@ -1,6 +1,7 @@
 import { IndianRupee, Pencil, Trash2 } from "lucide-react";
 import { type ITransaction, type TransactionType } from "../types/Transaction";
 import type { IncomeEntry } from "../types/Interface";
+import { mapIncomeEntryToTransaction } from "../utils/transactionMapper";
 
 interface TransactionTableProps {
   data: IncomeEntry[];
@@ -15,6 +16,17 @@ const TransactionTable = ({
   onDelete,
   onEdit,
 }: TransactionTableProps) => {
+  const renderCategoryName = (tx: IncomeEntry) => {
+    if (type === "income") {
+      if (typeof tx.incomeSource === "string") return tx.incomeSource;
+      if (tx.incomeSource && typeof tx.incomeSource === "object")
+        return tx.incomeSource.name;
+      if (tx.customIncomeSource) return tx.customIncomeSource;
+      return "—";
+    }
+    // You can extend this for expense rendering if needed.
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-base text-gray-800 border border-gray-200 rounded-lg overflow-hidden">
@@ -45,13 +57,13 @@ const TransactionTable = ({
                       : "bg-red-100 text-red-700"
                   }`}
                 >
-                  {tx._id}
+                  {renderCategoryName(tx)}
                 </span>
               </td>
 
               <td className="px-6 py-5 border-r">
                 <div className="flex items-center gap-2">
-                  <IndianRupee className="w-4 h-4 text-gray-500" />₹{" "}
+                  <IndianRupee className="w-4 h-4 text-gray-500" />
                   {tx.amount.toLocaleString()}
                 </div>
               </td>
@@ -68,11 +80,11 @@ const TransactionTable = ({
                 {tx.description || "—"}
               </td>
 
-              <td className="px-6 py-5 flex gap-3 items-center">
-                {type === "expense" && onEdit && (
+              <td className="px-6 py-5 flex gap-8 items-center">
+                {onEdit && (
                   <button
-                    onClick={() => onEdit(tx._id)}
-                    className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
+                    onClick={() => onEdit(mapIncomeEntryToTransaction(tx))}
+                    className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200"
                   >
                     <Pencil className="w-4 h-4" />
                     Edit
@@ -80,7 +92,7 @@ const TransactionTable = ({
                 )}
                 <button
                   onClick={() => onDelete(tx._id)}
-                  className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1"
+                  className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete

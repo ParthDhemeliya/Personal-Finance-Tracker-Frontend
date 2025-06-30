@@ -2,54 +2,93 @@ import { Wallet, Plus, IndianRupee } from "lucide-react";
 import { useState, useEffect } from "react";
 import TransactionModal from "../../components/TransactionModal";
 import TransactionTable from "../../components/TransactionTable";
+import Pagination from "../../components/Pagination";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { useAppSelector } from "../../hooks/useTypedSelector";
 import {
-  fetchIncomes,
+  fetchPaginatedIncomes,
   addIncome,
   deleteIncome,
+  fetchTotalIncome,
+  updateIncome,
 } from "../../redux/income/incomeThunk";
+import { setPage } from "../../redux/income/incomeSlice";
 import type { ITransaction } from "../../types/Transaction";
 import type { IncomeEntry } from "../../types/Interface";
 
+const PAGE_LIMIT = 5;
+
 const Income = () => {
   const dispatch = useAppDispatch();
-  const { incomes, loading } = useAppSelector((state) => state.income);
+  const {
+    data: incomes,
+    total,
+    currentPage,
+    totalPages,
+    loading,
+    overallTotalIncome,
+  } = useAppSelector((state) => state.income);
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<ITransaction | null>(null);
 
   useEffect(() => {
-    dispatch(fetchIncomes());
+    dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
+    dispatch(setPage(1));
+    dispatch(fetchTotalIncome());
   }, [dispatch]);
 
-  const totalIncome = incomes.reduce((acc, tx) => acc + tx.amount, 0);
+  const handlePageChange = (page: number) => {
+    dispatch(setPage(page));
+    dispatch(fetchPaginatedIncomes({ page, limit: PAGE_LIMIT }));
+  };
 
   const handleAddOrUpdate = async (
     entry: Omit<ITransaction, "_id" | "type">,
   ) => {
     const incomePayload = {
       ...entry,
-      type: "income",
-      incomeSource: entry.category, // 👈 ensure this mapping
+      type: "income" as const,
+      incomeSource: entry.category,
     };
 
     try {
-      await dispatch(
-        addIncome(incomePayload as Omit<IncomeEntry, "_id">),
-      ).unwrap();
-      await dispatch(fetchIncomes());
+      if (selectedTransaction) {
+        // Edit mode
+        await dispatch(
+          updateIncome({ id: selectedTransaction._id, data: incomePayload }),
+        ).unwrap();
+      } else {
+        // Add mode
+        await dispatch(
+          addIncome(incomePayload as Omit<IncomeEntry, "_id">),
+        ).unwrap();
+      }
+
+      dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
+      dispatch(setPage(1));
+      dispatch(fetchTotalIncome());
       setModalOpen(false);
+      setSelectedTransaction(null);
     } catch (err) {
-      console.error("Add income failed:", err);
+      console.error("Add/Edit income failed:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await dispatch(deleteIncome(id)).unwrap();
-      dispatch(fetchIncomes());
+      dispatch(fetchPaginatedIncomes({ page: currentPage, limit: PAGE_LIMIT }));
+      dispatch(fetchTotalIncome());
     } catch (err) {
       console.error("Delete income failed:", err);
     }
+  };
+
+  const handleEdit = (tx: ITransaction) => {
+    setSelectedTransaction(tx);
+    setModalOpen(true);
   };
 
   return (
@@ -63,8 +102,11 @@ const Income = () => {
             </h1>
           </div>
           <button
-            onClick={() => setModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2"
+            onClick={() => {
+              setModalOpen(true);
+              setSelectedTransaction(null);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer transition duration-200 shadow-md hover:shadow-lg"
           >
             <Plus className="w-5 h-5" />
             Add Income
@@ -76,7 +118,7 @@ const Income = () => {
           <h2 className="text-lg font-semibold text-gray-800">
             Total Income:{" "}
             <span className="text-red-700 font-bold">
-              {totalIncome.toLocaleString()}
+              {overallTotalIncome.toLocaleString()}
             </span>
           </h2>
         </div>
@@ -84,19 +126,39 @@ const Income = () => {
         {loading ? (
           <p className="text-center text-gray-500 italic">Loading incomes...</p>
         ) : (
-          <TransactionTable
-            data={incomes}
-            type="income"
-            onDelete={handleDelete}
-          />
+          <>
+            <TransactionTable
+              data={incomes}
+              type="income"
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
+            <Pagination
+              total={total}
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </>
         )}
 
         {modalOpen && (
           <TransactionModal
-            onClose={() => setModalOpen(false)}
+            onClose={() => {
+              setModalOpen(false);
+              setSelectedTransaction(null);
+            }}
             onSubmit={handleAddOrUpdate}
             type="income"
-            mode="add"
+            mode={selectedTransaction ? "edit" : "add"}
+            initialData={
+              selectedTransaction
+                ? {
+                    ...selectedTransaction,
+                    type: "income",
+                  }
+                : undefined
+            }
           />
         )}
       </div>

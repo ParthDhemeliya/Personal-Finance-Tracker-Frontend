@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import ProfilePopup from "../common/ProfilePopup";
+import ProfilePopup from "./ProfilePopup";
 import { DollarSign } from "lucide-react";
 import { type RootState } from "../redux/store";
 import { useAppSelector } from "../hooks/useTypedSelector";
