@@ -11,10 +11,13 @@ export function mapIncomeEntryToTransaction(entry: IncomeEntry): ITransaction {
     date: entry.date,
     description: entry.description,
     paymentMethod: entry.paymentMethod,
-    category:
+    type: "income",
+    // Only set incomeSource and customIncomeSource, not category
+    incomeSource:
       typeof entry.incomeSource === "object" && entry.incomeSource !== null
         ? entry.incomeSource._id
-        : entry.incomeSource || entry.customIncomeSource || "",
-    type: "income",
+        : entry.incomeSource || undefined,
+    customIncomeSource: entry.customIncomeSource || undefined,
+    currency: entry.currency || "USD",
   };
 }

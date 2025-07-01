@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
+// import { showSuccess } from "../utils/toastUtils";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { type ITransaction, type TransactionType } from "../types/Transaction";
-
 import type { PaymentMethod } from "../types/commonTypes";
-
-interface CategoryOption {
-  _id: string;
-  name: string;
-}
+import CategoryDropdown from "../common/CategoryDropdown";
 
 type FormData = {
   amount: string;
@@ -35,9 +31,9 @@ const TransactionModal = ({
   type,
   initialData,
 }: TransactionModalProps) => {
+  console.log(initialData, "initialData in TransactionModal");
   const today = new Date().toISOString().split("T")[0];
-
-  console.log(initialData, "vvvvv");
+  const [customCategoryName, setCustomCategoryName] = useState("");
   const [formData, setFormData] = useState<FormData>({
     amount: "",
     categoryId: "",
@@ -46,38 +42,58 @@ const TransactionModal = ({
     paymentMethod: "cash",
   });
 
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errors, setErrors] = useState({
     amount: "",
     categoryId: "",
     date: "",
   });
 
-  // Set initial data in edit mode
   useEffect(() => {
     if (mode === "edit" && initialData) {
+      let categoryId = "";
+      setCustomCategoryName(""); // Reset custom name on each open
+
+      if (type === "expense") {
+        if (typeof initialData.expenseCategory === "string") {
+          categoryId = initialData.expenseCategory;
+        } else if (
+          typeof initialData.expenseCategory === "object" &&
+          initialData.expenseCategory &&
+          "_id" in initialData.expenseCategory
+        ) {
+          categoryId = (initialData.expenseCategory as { _id: string })._id;
+        } else if (initialData.customExpenseCategory) {
+          categoryId = "custom";
+          setCustomCategoryName(initialData.customExpenseCategory);
+        }
+      }
+
+      if (type === "income") {
+        if (typeof initialData.incomeSource === "string") {
+          categoryId = initialData.incomeSource;
+        } else if (
+          typeof initialData.incomeSource === "object" &&
+          initialData.incomeSource &&
+          "_id" in initialData.incomeSource
+        ) {
+          // Use ._id for value, but also set custom name if present
+          categoryId = (initialData.incomeSource as { _id: string })._id;
+        } else if (initialData.customIncomeSource) {
+          categoryId = "custom";
+          setCustomCategoryName(initialData.customIncomeSource);
+        }
+      }
+
       setFormData({
         amount: initialData.amount.toString(),
-        categoryId: initialData.category || "", // 🔥 FIXED LINE
+        categoryId: categoryId || "",
         date: initialData.date.split("T")[0],
         description: initialData.description || "",
         paymentMethod: initialData.paymentMethod,
       });
     }
-  }, [mode, initialData]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch(`/api/categories?type=${type}`);
-        const data = await res.json();
-        setCategoryOptions(data);
-      } catch (err) {
-        console.error("Failed to load categories", err);
-      }
-    };
-    fetchCategories();
-  }, [type]);
+  }, [mode, initialData, type]);
 
   const validate = () => {
     const newErrors = { amount: "", categoryId: "", date: "" };
@@ -93,7 +109,7 @@ const TransactionModal = ({
     }
 
     if (!formData.categoryId.trim()) {
-      newErrors.categoryId = "Category is required";
+      newErrors.categoryId = "Category/Source is required";
       valid = false;
     }
 
@@ -117,10 +133,16 @@ const TransactionModal = ({
       [name]: name === "paymentMethod" ? (value as PaymentMethod) : value,
     }));
   };
+
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    const isObjectId = isValidObjectId(formData.categoryId.trim());
+    let finalCategoryId = formData.categoryId;
+    if (formData.categoryId === "custom" && customCategoryName.trim()) {
+      finalCategoryId = customCategoryName.trim();
+    }
+
+    const isObjectId = isValidObjectId(finalCategoryId);
 
     const transactionPayload: Omit<ITransaction, "_id" | "type"> = {
       amount: Number(formData.amount),
@@ -128,10 +150,13 @@ const TransactionModal = ({
       description: formData.description,
       paymentMethod: formData.paymentMethod,
       currency: "USD",
-      ...(isObjectId
-        ? { incomeSource: formData.categoryId }
-        : { customIncomeSource: formData.categoryId }),
-      category: formData.categoryId,
+      ...(type === "expense"
+        ? isObjectId
+          ? { categoryId: finalCategoryId }
+          : { customCategory: finalCategoryId }
+        : isObjectId
+          ? { incomeSource: finalCategoryId }
+          : { customIncomeSource: finalCategoryId }),
     };
 
     try {
@@ -164,6 +189,7 @@ const TransactionModal = ({
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Amount */}
           <div>
             <label className="block font-medium mb-1">Amount (₹)</label>
             <input
@@ -181,30 +207,21 @@ const TransactionModal = ({
             )}
           </div>
 
-          <div>
-            <label className="block font-medium mb-1">
-              {type === "income" ? "Source of Income" : "Expense Category"}
-            </label>
-            <input
-              list="category-options"
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleChange}
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.categoryId ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Type or select"
-            />
-            <datalist id="category-options">
-              {categoryOptions.map((cat) => (
-                <option key={cat._id} value={cat.name} />
-              ))}
-            </datalist>
-            {errors.categoryId && (
-              <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>
-            )}
-          </div>
+          {/* Category or Source Dropdown */}
+          <CategoryDropdown
+            type={type}
+            value={formData.categoryId}
+            customValue={customCategoryName}
+            setValue={(val) =>
+              setFormData((prev) => ({ ...prev, categoryId: val }))
+            }
+            setCustomValue={setCustomCategoryName}
+            error={errors.categoryId}
+            dropdownOpen={dropdownOpen}
+            setDropdownOpen={setDropdownOpen}
+          />
 
+          {/* Date */}
           <div>
             <label className="block font-medium mb-1">Date</label>
             <input
@@ -221,6 +238,7 @@ const TransactionModal = ({
             )}
           </div>
 
+          {/* Payment Method */}
           <div>
             <label className="block font-medium mb-1">Payment Method</label>
             <select
@@ -236,6 +254,7 @@ const TransactionModal = ({
             </select>
           </div>
 
+          {/* Description */}
           <div className="md:col-span-2">
             <label className="block font-medium mb-1">Description</label>
             <textarea
@@ -249,6 +268,7 @@ const TransactionModal = ({
           </div>
         </div>
 
+        {/* Actions */}
         <div className="mt-8 flex justify-end gap-4">
           <button
             onClick={onClose}

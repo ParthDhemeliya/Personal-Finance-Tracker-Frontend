@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "./api/ProtectedRoute";
+import { ToastContainer } from "react-toastify";
 const Login = lazy(() => import("./pages/Auth/Login"));
 const SignUp = lazy(() => import("./pages/Auth/SignUp"));
 const Income = lazy(() => import("./pages/Dashboard/Income"));
@@ -25,7 +26,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
 
-           <Route
+          <Route
             element={
               <ProtectedRoute>
                 <DashboardLayout />
@@ -40,6 +41,7 @@ const App = () => {
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Suspense>
+      <ToastContainer />
     </Router>
   );
 };

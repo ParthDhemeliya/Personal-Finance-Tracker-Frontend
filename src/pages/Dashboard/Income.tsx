@@ -1,6 +1,7 @@
 import { Wallet, Plus, IndianRupee } from "lucide-react";
 import { useState, useEffect } from "react";
 import TransactionModal from "../../components/TransactionModal";
+import { showSuccess } from "../../utils/toastUtils";
 import TransactionTable from "../../components/TransactionTable";
 import Pagination from "../../components/Pagination";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
@@ -50,7 +51,7 @@ const Income = () => {
     const incomePayload = {
       ...entry,
       type: "income" as const,
-      incomeSource: entry.category,
+      incomeSource: entry.customIncomeSource,
     };
 
     try {
@@ -59,11 +60,13 @@ const Income = () => {
         await dispatch(
           updateIncome({ id: selectedTransaction._id, data: incomePayload }),
         ).unwrap();
+        showSuccess("Income updated successfully!");
       } else {
         // Add mode
         await dispatch(
           addIncome(incomePayload as Omit<IncomeEntry, "_id">),
         ).unwrap();
+        showSuccess("Income added successfully!");
       }
 
       dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
@@ -79,6 +82,7 @@ const Income = () => {
   const handleDelete = async (id: string) => {
     try {
       await dispatch(deleteIncome(id)).unwrap();
+      showSuccess("Income deleted successfully!");
       dispatch(fetchPaginatedIncomes({ page: currentPage, limit: PAGE_LIMIT }));
       dispatch(fetchTotalIncome());
     } catch (err) {
@@ -91,6 +95,7 @@ const Income = () => {
     setModalOpen(true);
   };
 
+  console.log(selectedTransaction, "selectedTransaction");
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-md border border-gray-200">

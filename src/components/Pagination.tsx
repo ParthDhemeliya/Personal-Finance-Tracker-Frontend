@@ -11,18 +11,9 @@ const Pagination = ({
   totalPages,
   onPageChange,
 }: PaginationProps) => {
-  console.log(
-    "Pagination: total =",
-    total,
-    "page =",
-    page,
-    "totalPages =",
-    totalPages,
-  );
-
   const isFirst = page === 1;
   const isLast = page === totalPages;
-
+  console.log(total);
   const generatePageButtons = () => {
     const buttons = [];
     const range = 2; // Show current ± 2 pages
@@ -44,9 +35,7 @@ const Pagination = ({
     }
     return buttons;
   };
-  console.log(
-    `Pagination: total = ${total} page = ${page} totalPages = ${totalPages}`,
-  );
+
   return (
     <div className="flex justify-end mt-6 gap-2 items-center">
       <button

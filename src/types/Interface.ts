@@ -16,11 +16,14 @@ export interface IncomeEntry extends BaseTransaction {
   customIncomeSource?: string | null;
 }
 
-// Specific for expense
 export interface ExpenseEntry extends BaseTransaction {
   type: "expense";
-  expenseCategory: string; // ObjectId from Category
+  expenseCategory?:
+    | string
+    | { _id: string; name: string; color: string }
+    | null;
+  customExpenseCategory?: string | null;
 }
 
-// Union type for usage
+// Unified type
 export type TransactionEntry = IncomeEntry | ExpenseEntry;

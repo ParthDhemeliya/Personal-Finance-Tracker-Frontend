@@ -1,88 +1,168 @@
-import { useState } from "react";
-import { Wallet, Plus, IndianRupee } from "lucide-react";
-import { dummyTransactions } from "../../utils/dummyTransactions";
-import { type Transaction } from "../../types/Transaction";
+import { Wallet, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import TransactionModal from "../../components/TransactionModal";
 import TransactionTable from "../../components/TransactionTable";
+import Pagination from "../../components/Pagination";
+import { type AppDispatch, type RootState } from "../../redux/store";
+import {
+  fetchPaginatedExpenses,
+  fetchTotalExpenses,
+  addExpense,
+  updateExpense,
+  deleteExpense,
+} from "../../redux/expense/expense.thunks";
+import { setPage } from "../../redux/expense/expense.slice";
+import type { ITransaction } from "../../types/Transaction";
+import type { ExpenseEntry } from "../../types/Interface";
+import { showSuccess } from "../../utils/toastUtils";
+
+const PAGE_LIMIT = 5;
 
 const Expense = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(dummyTransactions);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: expenses,
+    total,
+    page: currentPage,
+    totalPages,
+    totalAmount,
+    loading,
+  } = useSelector((state: RootState) => state.expenses);
+
   const [modalOpen, setModalOpen] = useState(false);
-  const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<ITransaction | null>(null);
+  useEffect(() => {
+    dispatch(fetchPaginatedExpenses({ page: currentPage, limit: PAGE_LIMIT }));
+    dispatch(fetchTotalExpenses());
+  }, [dispatch, currentPage]);
 
-  const expenseTransactions = transactions.filter((tx) => tx.type === "expense");
-
-  const totalExpense = expenseTransactions.reduce((acc, tx) => acc + tx.amount, 0);
-
-  const handleAddOrUpdate = (entry: Transaction) => {
-    setTransactions((prev) => {
-      const exists = prev.find((t) => t.id === entry.id);
-      return exists
-        ? prev.map((t) => (t.id === entry.id ? entry : t))
-        : [entry, ...prev];
-    });
-    setModalOpen(false);
-    setEditTx(null);
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(newPage));
   };
 
-  const handleDelete = (id: number) => {
-    setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+  const handleAddOrUpdate = async (
+    entry: Omit<ITransaction, "_id" | "type">,
+  ) => {
+    const payload: Omit<ExpenseEntry, "_id"> = {
+      ...entry,
+      type: "expense",
+      expenseCategory: entry.customIncomeSource,
+    };
+
+    try {
+      if (selectedTransaction) {
+        await dispatch(
+          updateExpense({ id: selectedTransaction._id, data: payload }),
+        ).unwrap();
+        showSuccess("Expense updated successfully!");
+      } else {
+        await dispatch(addExpense(payload)).unwrap();
+        dispatch(setPage(1));
+        showSuccess("Expense added successfully!");
+      }
+
+      dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
+      dispatch(fetchTotalExpenses());
+      setModalOpen(false);
+      setSelectedTransaction(null);
+    } catch (err) {
+      console.error("Add/update expense failed:", err);
+    }
+  };
+
+  const handleEdit = (tx: ITransaction) => {
+    setSelectedTransaction(tx);
+    setModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await dispatch(deleteExpense(id)).unwrap();
+      showSuccess("Expense deleted successfully!");
+      dispatch(
+        fetchPaginatedExpenses({ page: currentPage, limit: PAGE_LIMIT }),
+      );
+      dispatch(fetchTotalExpenses());
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-md border border-gray-200">
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
             <Wallet className="w-8 h-8 text-red-600" />
-            <h1 className="text-4xl font-extrabold text-gray-800">Expense Overview</h1>
+            <h1 className="text-4xl font-extrabold text-gray-800">
+              Expense Overview
+            </h1>
           </div>
           <button
             onClick={() => {
-              setEditTx(null);
               setModalOpen(true);
+              setSelectedTransaction(null);
             }}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2"
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer transition duration-200 shadow-md hover:shadow-lg"
           >
             <Plus className="w-5 h-5" />
             Add Expense
           </button>
         </div>
+
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-center gap-2">
-          <IndianRupee className="text-red-600 w-5 h-5" />
+          <Wallet className="text-red-600 w-5 h-5" />
           <h2 className="text-lg font-semibold text-gray-800">
             Total Expense:{" "}
             <span className="text-red-700 font-bold">
-              ₹ {totalExpense.toLocaleString()}
+              ₹ {totalAmount.toLocaleString()}
             </span>
           </h2>
         </div>
-        <TransactionTable
-          data={expenseTransactions}
-          type="expense"
-          onDelete={handleDelete}
-          onEdit={(tx) => {
-            setEditTx(tx);
-            setModalOpen(true);
-          }}
-        />
 
-        
+        {loading ? (
+          <p className="text-center text-gray-500 italic">
+            Loading expenses...
+          </p>
+        ) : (
+          <>
+            <TransactionTable
+              data={expenses}
+              type="expense"
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
+            <Pagination
+              total={total}
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+
         {modalOpen && (
           <TransactionModal
             onClose={() => {
               setModalOpen(false);
-              setEditTx(null);
+              setSelectedTransaction(null);
             }}
             onSubmit={handleAddOrUpdate}
             type="expense"
-            mode={editTx ? "edit" : "add"}
-            initialData={editTx || undefined}
+            mode={selectedTransaction ? "edit" : "add"}
+            initialData={
+              selectedTransaction
+                ? { ...selectedTransaction, type: "expense" }
+                : undefined
+            }
           />
         )}
       </div>
     </div>
   );
-}
+};
 
 export default Expense;
