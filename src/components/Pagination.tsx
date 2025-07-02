@@ -16,7 +16,7 @@ const Pagination = ({
   console.log(total);
   const generatePageButtons = () => {
     const buttons = [];
-    const range = 2; // Show current ± 2 pages
+    const range = 2;
     const start = Math.max(1, page - range);
     const end = Math.min(totalPages, page + range);
 

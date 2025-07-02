@@ -15,7 +15,7 @@ import {
 } from "../../redux/income/incomeThunk";
 import { setPage } from "../../redux/income/incomeSlice";
 import type { ITransaction } from "../../types/Transaction";
-import type { IncomeEntry } from "../../types/Interface";
+import type { IncomeEntry, ExpenseEntry } from "../../types/Interface";
 
 const PAGE_LIMIT = 5;
 
@@ -46,36 +46,34 @@ const Income = () => {
   };
 
   const handleAddOrUpdate = async (
-    entry: Omit<ITransaction, "_id" | "type">,
+    entry: Omit<IncomeEntry, "_id"> | Omit<ExpenseEntry, "_id">,
   ) => {
-    const incomePayload = {
-      ...entry,
-      type: "income" as const,
-      incomeSource: entry.customIncomeSource,
-    };
+    // Only handle income entries
+    if ((entry as Omit<IncomeEntry, "_id">).type === "income") {
+      try {
+        if (selectedTransaction) {
+          // Edit mode
+          await dispatch(
+            updateIncome({
+              id: selectedTransaction._id,
+              data: entry as Omit<IncomeEntry, "_id">,
+            }),
+          ).unwrap();
+          showSuccess("Income updated successfully!");
+        } else {
+          // Add mode
+          await dispatch(addIncome(entry as Omit<IncomeEntry, "_id">)).unwrap();
+          showSuccess("Income added successfully!");
+        }
 
-    try {
-      if (selectedTransaction) {
-        // Edit mode
-        await dispatch(
-          updateIncome({ id: selectedTransaction._id, data: incomePayload }),
-        ).unwrap();
-        showSuccess("Income updated successfully!");
-      } else {
-        // Add mode
-        await dispatch(
-          addIncome(incomePayload as Omit<IncomeEntry, "_id">),
-        ).unwrap();
-        showSuccess("Income added successfully!");
+        dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
+        dispatch(setPage(1));
+        dispatch(fetchTotalIncome());
+        setModalOpen(false);
+        setSelectedTransaction(null);
+      } catch (err) {
+        console.error("Add/Edit income failed:", err);
       }
-
-      dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
-      dispatch(setPage(1));
-      dispatch(fetchTotalIncome());
-      setModalOpen(false);
-      setSelectedTransaction(null);
-    } catch (err) {
-      console.error("Add/Edit income failed:", err);
     }
   };
 

@@ -47,13 +47,11 @@ const NavBar = () => {
   return (
     <div>
       {/* 🔵 Top Bar */}
-      <nav className="fixed top-0 left-0 w-full z-50 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <nav className="fixed top-0 left-0 w-full z-50 bg-blue-50 border-b border-blue-100/80">
         <div className="h-14 px-6 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <DollarSign className="h-6 w-6 text-blue-600" />
-            <span className="text-xl font-bold text-gray-800 dark:text-white">
-              My Budget
-            </span>
+            <DollarSign className="h-6 w-6 text-blue-700" />
+            <span className="text-xl font-bold text-blue-900">My Budget</span>
           </Link>
 
           <div className="relative" ref={popupRef}>
@@ -62,11 +60,11 @@ const NavBar = () => {
               className="flex items-center gap-3 cursor-pointer"
             >
               <img
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full border border-blue-200"
                 src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
                 alt="User"
               />
-              <span className="text-sm font-medium text-gray-800 dark:text-white hidden sm:inline">
+              <span className="text-sm font-medium text-blue-900 hidden sm:inline">
                 {userFirstName}
               </span>
             </div>
@@ -86,9 +84,8 @@ const NavBar = () => {
           </div>
         </div>
       </nav>
-
-      {/* 🔴 Sidebar */}
-      <aside className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+      {/* {side bar } */}
+      <aside className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm">
         <div className="h-full px-4 py-6 space-y-2">
           {[
             { label: "Dashboard", path: "/dashboard", color: "gray" },
@@ -100,18 +97,18 @@ const NavBar = () => {
             const colorMap = {
               gray: {
                 active:
-                  "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white",
-                hover: "hover:bg-gray-200 dark:hover:bg-gray-800",
+                  "bg-white text-blue-900 font-bold border border-blue-100",
+                hover: "hover:bg-white hover:text-blue-900",
               },
               blue: {
                 active:
-                  "bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-white",
-                hover: "hover:bg-blue-50 dark:hover:bg-blue-800",
+                  "bg-blue-100 text-blue-800 font-bold border border-blue-200",
+                hover: "hover:bg-blue-100 hover:text-blue-800",
               },
               red: {
                 active:
-                  "bg-red-100 dark:bg-red-700 text-red-800 dark:text-white",
-                hover: "hover:bg-red-50 dark:hover:bg-red-800",
+                  "bg-red-100 text-red-800 font-bold border border-red-200",
+                hover: "hover:bg-red-100 hover:text-red-800",
               },
             };
 
@@ -123,8 +120,8 @@ const NavBar = () => {
                 to={path}
                 className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   isRouteActive
-                    ? baseColor.active
-                    : `text-gray-800 dark:text-gray-300 ${baseColor.hover}`
+                    ? baseColor.active + " scale-105 ring-2 ring-blue-200/40"
+                    : `text-blue-900 ${baseColor.hover}`
                 }`}
               >
                 {label}

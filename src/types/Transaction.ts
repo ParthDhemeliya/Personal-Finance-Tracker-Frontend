@@ -28,4 +28,8 @@ export interface ITransaction {
   // Optional fields for expense
   expenseCategory?: string | { _id: string; name: string };
   customExpenseCategory?: string;
+
+  // Backend fields
+  createdAt?: string;
+  updatedAt?: string;
 }

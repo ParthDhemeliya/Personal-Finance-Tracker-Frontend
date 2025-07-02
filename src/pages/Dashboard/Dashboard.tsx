@@ -2,174 +2,235 @@ import {
   DollarSign,
   TrendingUp,
   CreditCard,
-  PieChart,
   ArrowUpIcon,
   ArrowDownIcon,
   // Home,
 } from "lucide-react";
+import AlertBanner from "../../components/Dashboard/AlertBanner";
+import { useState, useEffect } from "react";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { useAppSelector } from "../../hooks/useTypedSelector";
+import { fetchUser } from "../../redux/auth/authThunk";
+import { fetchBalanceThunk } from "../../redux/balance/balanceThunk";
+import { fetchIncomeStatsThunk } from "../../redux/income/incomeStatsThunk";
+import { fetchExpenseStatsThunk } from "../../redux/expense/expenseStatsThunk";
+import { fetchSavingsGoalThunk } from "../../redux/savingsGoal/savingsGoalThunk";
+import { fetchRecentTransactionsThunk } from "../../redux/recentTransactions/recentTransactionsThunk";
+import RecentTransactionsList from "../../components/RecentTransactionsList";
+import SavingsGoalCard from "../../components/Dashboard/SavingsGoalCard";
+
+import SpendingPieChart from "../../components/Dashboard/SpendingPieChart";
+import TransactionModal from "../../components/TransactionModal";
+import { addIncome } from "../../redux/income/incomeThunk";
+import { addExpense } from "../../redux/expense/expense.thunks";
 
 const Dashboard = () => {
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const balance = useAppSelector((state) => state.balance.amount);
+  const percentChange = useAppSelector((state) => state.balance.percentChange);
+  const incomeAmount = useAppSelector((state) => state.incomeStats.amount);
+  const incomePercentChange = useAppSelector(
+    (state) => state.incomeStats.percentChange,
+  );
+  const expenseAmount = useAppSelector((state) => state.expenseStats.amount);
+  const expensePercentChange = useAppSelector(
+    (state) => state.expenseStats.percentChange,
+  );
+  // Removed unused selectors for loading and savings goal (now handled in SavingsGoalCard)
+
+  // Modal state for Add Income/Expense
+  const [transactionModalOpen, setTransactionModalOpen] = useState<
+    false | "income" | "expense"
+  >(false);
+
+  // Example: You can replace these with real logic from Redux or props
+  const [showOverspend, setShowOverspend] = useState(true);
+  const [showMissedGoal, setShowMissedGoal] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(fetchUser());
+      return;
+    }
+    dispatch(fetchBalanceThunk());
+    dispatch(fetchIncomeStatsThunk());
+    dispatch(fetchExpenseStatsThunk());
+    dispatch(fetchSavingsGoalThunk());
+    dispatch(fetchRecentTransactionsThunk(5));
+  }, [dispatch, user]);
+
+  // Handler for submitting a new transaction
+  const handleTransactionSubmit = async (
+    entry:
+      | Omit<import("../../types/Interface").IncomeEntry, "_id">
+      | Omit<import("../../types/Interface").ExpenseEntry, "_id">,
+  ) => {
+    if (transactionModalOpen === "income") {
+      await dispatch(
+        addIncome(
+          entry as Omit<import("../../types/Interface").IncomeEntry, "_id">,
+        ),
+      );
+      dispatch(fetchIncomeStatsThunk());
+      dispatch(fetchBalanceThunk());
+    } else if (transactionModalOpen === "expense") {
+      await dispatch(
+        addExpense(
+          entry as Omit<import("../../types/Interface").ExpenseEntry, "_id">,
+        ),
+      );
+      dispatch(fetchExpenseStatsThunk());
+      dispatch(fetchBalanceThunk());
+    }
+    dispatch(fetchRecentTransactionsThunk(5));
+    setTransactionModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back!</h1>
-          <p className="text-gray-600">
-            Here's your financial overview for this month.
-          </p>
+        {/* Header with Add Income/Expense Buttons aligned right */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {user && user.first_name
+                ? `Welcome back, ${user.first_name}!`
+                : "Welcome back!"}
+            </h1>
+            <p className="text-gray-600">
+              Here's your financial overview for this month.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-4 justify-end">
+            <button
+              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
+              onClick={() => setTransactionModalOpen("income")}
+            >
+              + Add Income
+            </button>
+            <button
+              className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition"
+              style={{ backgroundColor: "var(--color-red-600)" }}
+              onClick={() => setTransactionModalOpen("expense")}
+            >
+              + Add Expense
+            </button>
+          </div>
         </div>
 
+        {/* Transaction Modal */}
+        {transactionModalOpen && (
+          <TransactionModal
+            onClose={() => setTransactionModalOpen(false)}
+            onSubmit={handleTransactionSubmit}
+            mode="add"
+            type={transactionModalOpen}
+          />
+        )}
+        {showMissedGoal && (
+          <AlertBanner
+            type="error"
+            message={
+              <>
+                <strong>Heads up:</strong> You are behind on your savings goal
+                progress.
+              </>
+            }
+            onClose={() => setShowMissedGoal(false)}
+          />
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-xl shadow border">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">
+          {/* Total Balance Card */}
+          <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl shadow-lg border-2 border-blue-200 hover:border-blue-400 transition-colors duration-200 overflow-hidden group">
+            <div className="absolute right-4 top-4 opacity-10 text-blue-300 text-7xl pointer-events-none select-none group-hover:opacity-20 transition-opacity duration-200">
+              <DollarSign className="w-20 h-20" />
+            </div>
+            <div className="flex justify-between items-center mb-3 z-10 relative">
+              <h3 className="text-base font-bold text-blue-700 tracking-wide">
                 Total Balance
               </h3>
-              <DollarSign className="w-5 h-5 text-gray-400" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">₹12,345</div>
-            <p className="text-sm text-green-600 flex items-center mt-1">
-              <ArrowUpIcon className="w-4 h-4 mr-1" />
-              +2.5% from last month
+            <div className="text-3xl font-extrabold text-blue-900 mb-2 z-10 relative">
+              ₹{balance?.toLocaleString() ?? 0}
+            </div>
+            <p
+              className={`text-sm ${percentChange > 0 ? "text-green-600" : percentChange < 0 ? "text-red-600" : "text-gray-500"} flex items-center mt-1 z-10 relative`}
+            >
+              {percentChange > 0 && <ArrowUpIcon className="w-4 h-4 mr-1" />}
+              {percentChange < 0 && <ArrowDownIcon className="w-4 h-4 mr-1" />}
+              {percentChange === 0
+                ? "No change from last period"
+                : `${percentChange > 0 ? "+" : ""}${percentChange}% from last period`}
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow border">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">
+          {/* Monthly Income Card */}
+          <div className="relative bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl shadow-lg border-2 border-green-200 hover:border-green-400 transition-colors duration-200 overflow-hidden group">
+            <div className="absolute right-4 top-4 opacity-10 text-green-300 text-7xl pointer-events-none select-none group-hover:opacity-20 transition-opacity duration-200">
+              <TrendingUp className="w-20 h-20" />
+            </div>
+            <div className="flex justify-between items-center mb-3 z-10 relative">
+              <h3 className="text-base font-bold text-green-700 tracking-wide">
                 Monthly Income
               </h3>
-              <TrendingUp className="w-5 h-5 text-gray-400" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">₹8,200</div>
-            <p className="text-sm text-green-600 flex items-center mt-1">
-              <ArrowUpIcon className="w-4 h-4 mr-1" />
-              +5.1% from last month
+            <div className="text-3xl font-extrabold text-green-900 mb-2 z-10 relative">
+              ₹{incomeAmount?.toLocaleString() ?? 0}
+            </div>
+            <p
+              className={`text-sm ${incomePercentChange > 0 ? "text-green-600" : incomePercentChange < 0 ? "text-red-600" : "text-gray-500"} flex items-center mt-1 z-10 relative`}
+            >
+              {incomePercentChange > 0 && (
+                <ArrowUpIcon className="w-4 h-4 mr-1" />
+              )}
+              {incomePercentChange < 0 && (
+                <ArrowDownIcon className="w-4 h-4 mr-1" />
+              )}
+              {incomePercentChange === 0
+                ? "No change from last month"
+                : `${incomePercentChange > 100 ? "+100" : incomePercentChange < -100 ? "-100" : (incomePercentChange > 0 ? "+" : "") + Math.round(incomePercentChange)}% from last month`}
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow border">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">
+          {/* Monthly Expenses Card */}
+          <div className="relative bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-2xl shadow-lg border-2 border-red-200 hover:border-red-400 transition-colors duration-200 overflow-hidden group">
+            <div className="absolute right-4 top-4 opacity-10 text-red-300 text-7xl pointer-events-none select-none group-hover:opacity-20 transition-opacity duration-200">
+              <CreditCard className="w-20 h-20" />
+            </div>
+            <div className="flex justify-between items-center mb-3 z-10 relative">
+              <h3 className="text-base font-bold text-red-700 tracking-wide">
                 Monthly Expenses
               </h3>
-              <CreditCard className="w-5 h-5 text-gray-400" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">₹5,650</div>
-            <p className="text-sm text-red-600 flex items-center mt-1">
-              <ArrowDownIcon className="w-4 h-4 mr-1" />
-              -1.7% from last month
+            <div className="text-3xl font-extrabold text-red-900 mb-2 z-10 relative">
+              ₹{expenseAmount?.toLocaleString() ?? 0}
+            </div>
+            <p
+              className={`text-sm ${expensePercentChange > 0 ? "text-green-600" : expensePercentChange < 0 ? "text-red-600" : "text-gray-500"} flex items-center mt-1 z-10 relative`}
+            >
+              {expensePercentChange > 0 && (
+                <ArrowUpIcon className="w-4 h-4 mr-1" />
+              )}
+              {expensePercentChange < 0 && (
+                <ArrowDownIcon className="w-4 h-4 mr-1" />
+              )}
+              {expensePercentChange === 0
+                ? "No change from last month"
+                : `${expensePercentChange > 100 ? "+100" : expensePercentChange < -100 ? "-100" : (expensePercentChange > 0 ? "+" : "") + Math.round(expensePercentChange)}% from last month`}
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow border">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-500">
-                Savings Goal
-              </h3>
-              <PieChart className="w-5 h-5 text-gray-400" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">68%</div>
-            <p className="text-sm text-gray-500">₹6,800 of ₹10,000 goal</p>
+          {/* Savings Goal Card */}
+          <div className="h-full">
+            <SavingsGoalCard />
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow border p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <CreditCard className="text-red-500 w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Grocery Store</p>
-                    <p className="text-sm text-gray-500">Today, 2:30 PM</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-red-600">-₹870</p>
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
-                    Food
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <TrendingUp className="text-green-600 w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Salary</p>
-                    <p className="text-sm text-gray-500">Yesterday, 9:00 AM</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-green-600">+₹2,600</p>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                    Income
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow border p-6">
-            <h3 className="text-lg font-semibold mb-4">Budget Overview</h3>
-            <div className="space-y-5">
-              {[
-                {
-                  category: "Food & Dining",
-                  current: 456,
-                  max: 600,
-                  color: "bg-blue-600",
-                },
-                {
-                  category: "Transportation",
-                  current: 234,
-                  max: 400,
-                  color: "bg-green-600",
-                },
-                {
-                  category: "Entertainment",
-                  current: 189,
-                  max: 300,
-                  color: "bg-yellow-500",
-                },
-                {
-                  category: "Shopping",
-                  current: 345,
-                  max: 250,
-                  color: "bg-red-600",
-                },
-              ].map((item, index) => {
-                const percent = Math.min((item.current / item.max) * 100, 100);
-                return (
-                  <div key={index}>
-                    <div className="flex justify-between mb-1 text-sm font-medium">
-                      <span>{item.category}</span>
-                      <span className="text-gray-500">
-                        ₹{item.current} / ₹{item.max}
-                      </span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full">
-                      <div
-                        className={`${item.color} h-2 rounded-full`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                    {item.current > item.max && (
-                      <p className="text-xs text-red-600 mt-1">
-                        Over budget by ₹{item.current - item.max}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <RecentTransactionsList />
+          <SpendingPieChart />
         </div>
       </div>
     </div>

@@ -1,123 +1,183 @@
-import { useState } from 'react';
-import { useAppDispatch } from '../../hooks/useTypedDispatch';
-import { loginUser } from '../../redux/auth/authThunk';
-import { useNavigate } from 'react-router-dom';
-import { DollarSign } from 'lucide-react';
-
+import { useState } from "react";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { loginUser } from "../../redux/auth/authThunk";
+import { useNavigate } from "react-router-dom";
+import { DollarSign } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-    const dispatch = useAppDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useAppDispatch();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Invalid email address.";
+    }
+
+    if (!password) {
+      errors.password = "Password is required.";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters.";
+    }
+
+    return errors;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await dispatch(loginUser({ email, password }));
-    if (res.meta.requestStatus === 'fulfilled') {
-      navigate('/dashboard'); // or wherever
+    setFieldErrors({});
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const res = await dispatch(
+        loginUser({
+          email,
+          password,
+          first_name: "",
+          last_name: "",
+        }),
+      );
+
+      if (loginUser.fulfilled.match(res)) {
+        navigate("/dashboard");
+      } else {
+        const payload = (res as any).payload;
+        if (payload?.message?.toLowerCase().includes("invalid credentials")) {
+          setFieldErrors({
+            general: "Invalid email or password. Please try again.",
+          });
+        } else if (payload?.message?.toLowerCase().includes("network")) {
+          setFieldErrors({
+            general:
+              "Network error. Please check your connection and try again.",
+          });
+        } else {
+          setFieldErrors({
+            general: payload?.message || "Login failed. Please try again.",
+          });
+        }
+      }
+    } catch (err) {
+      setFieldErrors({
+        general: "Something went wrong. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-
   return (
-    <div>
-      <section className="bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <span
-            className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
-          >
-            <DollarSign className="h-8 w-8 me-2 text-blue-600" />
-            My Budget
-          </span>
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                Sign in to your account
-              </h1>
-              <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    Your email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="name@company.com"
-                    required
-                    onChange={(e) => setEmail(e.target.value)} 
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder="••••••••"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    required
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="remember"
-                        aria-describedby="remember"
-                        type="checkbox"
-                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-                        required
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label
-                        htmlFor="remember"
-                        className="text-gray-500 dark:text-gray-300"
-                      >
-                        Remember me
-                      </label>
-                    </div>
-                  </div>
-                  <a
-                    href="#"
-                    className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
-                <button
-                  type="submit"
-                  className="cursor-pointer w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  Sign in
-                </button>
-                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                  Don’t have an account yet?{" "}
-                  <a
-                    onClick={() => navigate("/signup")}
-                    className="font-medium text-primary-600 hover:underline dark:text-primary-500 cursor-pointer"
-                  >
-                    Sign up
-                  </a>
-                </p>
-              </form>
-            </div>
-          </div>
+    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow dark:bg-gray-800">
+        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+          <DollarSign className="w-6 h-6 text-blue-600 mr-2" />
+          My Budget
         </div>
-      </section>
-    </div>
+
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
+          Sign in to your account
+        </h2>
+
+        {fieldErrors.general && (
+          <div className="text-red-600 text-sm mb-4 text-center">
+            {fieldErrors.general}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, email: "" }));
+              }}
+              className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+                fieldErrors.email
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-300"
+              }`}
+              aria-invalid={!!fieldErrors.email}
+            />
+            {fieldErrors.email && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+                fieldErrors.password
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-300"
+              }`}
+              aria-invalid={!!fieldErrors.password}
+            />
+            {fieldErrors.password && (
+              <p className="text-red-500 text-xs mt-1">
+                {fieldErrors.password}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 text-gray-500 dark:text-gray-300">
+              <input
+                type="checkbox"
+                className="w-4 h-4 border-gray-300 rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
+              />
+              Remember me
+            </label>
+            <a href="#" className="text-blue-600 hover:underline">
+              Forgot password?
+            </a>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {isSubmitting ? "Signing in..." : "Sign in"}
+          </button>
+
+          <p className="text-sm text-center text-gray-500 dark:text-gray-400">
+            Don’t have an account yet?{" "}
+            <span
+              onClick={() => navigate("/signup")}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Sign up
+            </span>
+          </p>
+        </form>
+      </div>
+    </section>
   );
 };
+
 export default Login;

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-// import { showSuccess } from "../utils/toastUtils";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { type ITransaction, type TransactionType } from "../types/Transaction";
@@ -14,9 +13,13 @@ type FormData = {
   paymentMethod: PaymentMethod;
 };
 
+import type { IncomeEntry, ExpenseEntry } from "../types/Interface";
+
 interface TransactionModalProps {
   onClose: () => void;
-  onSubmit: (entry: Omit<ITransaction, "_id" | "type">) => Promise<void>;
+  onSubmit: (
+    entry: Omit<IncomeEntry, "_id"> | Omit<ExpenseEntry, "_id">,
+  ) => Promise<void>;
   mode: "add" | "edit";
   initialData?: ITransaction;
   type: TransactionType;
@@ -31,13 +34,19 @@ const TransactionModal = ({
   type,
   initialData,
 }: TransactionModalProps) => {
-  console.log(initialData, "initialData in TransactionModal");
-  const today = new Date().toISOString().split("T")[0];
+  const getNowForDateInput = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [customCategoryName, setCustomCategoryName] = useState("");
   const [formData, setFormData] = useState<FormData>({
     amount: "",
     categoryId: "",
-    date: today,
+    date: getNowForDateInput(),
     description: "",
     paymentMethod: "cash",
   });
@@ -52,7 +61,7 @@ const TransactionModal = ({
   useEffect(() => {
     if (mode === "edit" && initialData) {
       let categoryId = "";
-      setCustomCategoryName(""); // Reset custom name on each open
+      setCustomCategoryName("");
 
       if (type === "expense") {
         if (typeof initialData.expenseCategory === "string") {
@@ -77,7 +86,6 @@ const TransactionModal = ({
           initialData.incomeSource &&
           "_id" in initialData.incomeSource
         ) {
-          // Use ._id for value, but also set custom name if present
           categoryId = (initialData.incomeSource as { _id: string })._id;
         } else if (initialData.customIncomeSource) {
           categoryId = "custom";
@@ -88,7 +96,7 @@ const TransactionModal = ({
       setFormData({
         amount: initialData.amount.toString(),
         categoryId: categoryId || "",
-        date: initialData.date.split("T")[0],
+        date: initialData.date,
         description: initialData.description || "",
         paymentMethod: initialData.paymentMethod,
       });
@@ -144,20 +152,36 @@ const TransactionModal = ({
 
     const isObjectId = isValidObjectId(finalCategoryId);
 
-    const transactionPayload: Omit<ITransaction, "_id" | "type"> = {
-      amount: Number(formData.amount),
-      date: formData.date,
-      description: formData.description,
-      paymentMethod: formData.paymentMethod,
-      currency: "USD",
-      ...(type === "expense"
-        ? isObjectId
-          ? { categoryId: finalCategoryId }
-          : { customCategory: finalCategoryId }
-        : isObjectId
-          ? { incomeSource: finalCategoryId }
-          : { customIncomeSource: finalCategoryId }),
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let transactionPayload: any;
+    // Always convert date to ISO string for backend
+    const isoDate =
+      formData.date.length === 10
+        ? new Date(formData.date).toISOString()
+        : formData.date;
+    if (type === "income") {
+      transactionPayload = {
+        amount: Number(formData.amount),
+        date: isoDate,
+        description: formData.description,
+        paymentMethod: formData.paymentMethod,
+        currency: "USD",
+        type: "income",
+        incomeSource: isObjectId ? finalCategoryId : undefined,
+        customIncomeSource: !isObjectId ? finalCategoryId : undefined,
+      };
+    } else {
+      transactionPayload = {
+        amount: Number(formData.amount),
+        date: isoDate,
+        description: formData.description,
+        paymentMethod: formData.paymentMethod,
+        currency: "USD",
+        type: "expense",
+        categoryId: isObjectId ? finalCategoryId : undefined,
+        customCategory: !isObjectId ? finalCategoryId : undefined,
+      };
+    }
 
     try {
       await onSubmit(transactionPayload);
@@ -228,7 +252,9 @@ const TransactionModal = ({
               name="date"
               type="date"
               value={formData.date}
-              onChange={handleChange}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, date: e.target.value }))
+              }
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
                 errors.date ? "border-red-500" : "border-gray-300"
               }`}

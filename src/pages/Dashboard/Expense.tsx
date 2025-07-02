@@ -15,7 +15,7 @@ import {
 } from "../../redux/expense/expense.thunks";
 import { setPage } from "../../redux/expense/expense.slice";
 import type { ITransaction } from "../../types/Transaction";
-import type { ExpenseEntry } from "../../types/Interface";
+import type { IncomeEntry, ExpenseEntry } from "../../types/Interface";
 import { showSuccess } from "../../utils/toastUtils";
 
 const PAGE_LIMIT = 5;
@@ -44,32 +44,34 @@ const Expense = () => {
   };
 
   const handleAddOrUpdate = async (
-    entry: Omit<ITransaction, "_id" | "type">,
+    entry: Omit<IncomeEntry, "_id"> | Omit<ExpenseEntry, "_id">,
   ) => {
-    const payload: Omit<ExpenseEntry, "_id"> = {
-      ...entry,
-      type: "expense",
-      expenseCategory: entry.customIncomeSource,
-    };
+    // Only handle expense entries
+    if ((entry as Omit<ExpenseEntry, "_id">).type === "expense") {
+      try {
+        if (selectedTransaction) {
+          await dispatch(
+            updateExpense({
+              id: selectedTransaction._id,
+              data: entry as Omit<ExpenseEntry, "_id">,
+            }),
+          ).unwrap();
+          showSuccess("Expense updated successfully!");
+        } else {
+          await dispatch(
+            addExpense(entry as Omit<ExpenseEntry, "_id">),
+          ).unwrap();
+          dispatch(setPage(1));
+          showSuccess("Expense added successfully!");
+        }
 
-    try {
-      if (selectedTransaction) {
-        await dispatch(
-          updateExpense({ id: selectedTransaction._id, data: payload }),
-        ).unwrap();
-        showSuccess("Expense updated successfully!");
-      } else {
-        await dispatch(addExpense(payload)).unwrap();
-        dispatch(setPage(1));
-        showSuccess("Expense added successfully!");
+        dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
+        dispatch(fetchTotalExpenses());
+        setModalOpen(false);
+        setSelectedTransaction(null);
+      } catch (err) {
+        console.error("Add/update expense failed:", err);
       }
-
-      dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
-      dispatch(fetchTotalExpenses());
-      setModalOpen(false);
-      setSelectedTransaction(null);
-    } catch (err) {
-      console.error("Add/update expense failed:", err);
     }
   };
 

@@ -16,121 +16,179 @@ const SignUp = () => {
     confirmPassword: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!form.first_name.trim()) errors.first_name = "First name is required.";
+    if (!form.last_name.trim()) errors.last_name = "Last name is required.";
+    if (!form.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = "Invalid email address.";
+    }
+
+    if (!form.password) errors.password = "Password is required.";
+    else if (form.password.length < 6)
+      errors.password = "Password must be at least 6 characters.";
+
+    if (!form.confirmPassword) {
+      errors.confirmPassword = "Please confirm your password.";
+    } else if (form.password !== form.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match.";
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      return alert("Passwords do not match");
+    setFieldErrors({});
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
     }
 
-    const resultAction = await dispatch(
-      registerUser({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        password: form.password,
-      }),
-    );
+    try {
+      setIsSubmitting(true);
+      const resultAction = await dispatch(
+        registerUser({
+          first_name: form.first_name,
+          last_name: form.last_name,
+          email: form.email,
+          password: form.password,
+        }),
+      );
 
-    if (registerUser.fulfilled.match(resultAction)) {
-      navigate("/dashboard");
-    } else {
-      alert("Signup failed");
+      if (registerUser.fulfilled.match(resultAction)) {
+        navigate("/dashboard");
+      } else {
+        const payload = (resultAction as any).payload;
+
+        if (payload?.errors && Array.isArray(payload.errors)) {
+          const serverErrors: { [key: string]: string } = {};
+          payload.errors.forEach((err: { field: string; message: string }) => {
+            serverErrors[err.field] = err.message;
+          });
+          setFieldErrors(serverErrors);
+        } else if (payload?.message) {
+          const msg = payload.message.toLowerCase();
+          if (msg.includes("user already exists")) {
+            setFieldErrors({
+              email:
+                "An account with this email already exists. Please login or use a different email.",
+            });
+          } else {
+            setFieldErrors({ general: payload.message });
+          }
+        } else {
+          setFieldErrors({
+            general: "An unexpected error occurred. Please try again.",
+          });
+        }
+      }
+    } catch (error) {
+      setFieldErrors({
+        general: "Network error. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <a
-          href="#"
-          className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
-        >
-          <DollarSign className="h-8 w-8 me-2 text-blue-600" />
+    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+          <DollarSign className="w-6 h-6 text-blue-600 mr-2" />
           My Budget
-        </a>
-        <div className="w-full bg-white rounded-lg shadow dark:border sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Create an account
-            </h1>
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-              <input
-                type="text"
-                name="first_name"
-                id="first_name"
-                onChange={handleChange}
-                value={form.first_name}
-                required
-                placeholder="First Name"
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-
-              <input
-                type="text"
-                name="last_name"
-                id="last_name"
-                onChange={handleChange}
-                value={form.last_name}
-                required
-                placeholder="Last Name"
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-              <input
-                type="email"
-                name="email"
-                id="email"
-                onChange={handleChange}
-                value={form.email}
-                required
-                placeholder="name@company.com"
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-
-              <input
-                type="password"
-                name="password"
-                id="password"
-                onChange={handleChange}
-                value={form.password}
-                required
-                placeholder="password"
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-
-              <input
-                type="password"
-                name="confirmPassword"
-                id="confirmPassword"
-                onChange={handleChange}
-                value={form.confirmPassword}
-                required
-                placeholder="confirm password"
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-
-              <button
-                type="submit"
-                className="w-full text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-              >
-                Create an account
-              </button>
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Already have an account?{" "}
-                <span
-                  onClick={() => navigate("/login")}
-                  className="font-medium text-blue-600 hover:underline cursor-pointer"
-                >
-                  Login here
-                </span>
-              </p>
-            </form>
-          </div>
         </div>
+
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
+          Create an Account
+        </h2>
+
+        {fieldErrors.general && (
+          <div className="text-red-600 text-sm mb-4 text-center">
+            {fieldErrors.general}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {[
+            {
+              name: "first_name",
+              type: "text",
+              placeholder: "First Name",
+            },
+            {
+              name: "last_name",
+              type: "text",
+              placeholder: "Last Name",
+            },
+            {
+              name: "email",
+              type: "email",
+              placeholder: "Email",
+            },
+            {
+              name: "password",
+              type: "password",
+              placeholder: "Password",
+            },
+            {
+              name: "confirmPassword",
+              type: "password",
+              placeholder: "Confirm Password",
+            },
+          ].map(({ name, type, placeholder }) => (
+            <div key={name}>
+              <input
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                value={form[name as keyof typeof form]}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+                  fieldErrors[name]
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                }`}
+                aria-invalid={!!fieldErrors[name]}
+              />
+              {fieldErrors[name] && (
+                <p className="text-red-500 text-xs mt-1">{fieldErrors[name]}</p>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {isSubmitting ? "Creating..." : "Create an Account"}
+          </button>
+
+          <p className="text-sm text-center text-gray-500 dark:text-gray-400">
+            Already have an account?{" "}
+            <span
+              onClick={() => navigate("/login")}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Login here
+            </span>
+          </p>
+        </form>
       </div>
     </section>
   );

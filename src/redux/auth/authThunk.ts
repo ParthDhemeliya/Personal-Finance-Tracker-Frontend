@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../../api/axiosInstance";
+import getErrorMessage from "../../utils/getErrorMessage";
 
 interface AuthPayload {
   first_name: string;
@@ -13,11 +14,14 @@ export const loginUser = createAsyncThunk(
   async ({ email, password }: AuthPayload, thunkAPI) => {
     try {
       const response = await axios.post("/auth/login", { email, password });
+      // Store token in localStorage for authenticated requests
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      console.log(response.data.token);
       return response.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Login failed",
-      );
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
 );
@@ -34,10 +38,10 @@ export const registerUser = createAsyncThunk(
       });
       localStorage.setItem("token", response.data.token);
       return response.data;
-    } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.response?.data?.message || "Registration failed");
+    } catch (err: unknown) {
+      return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
-  }
+  },
 );
 
 export const fetchUser = createAsyncThunk(
@@ -45,20 +49,14 @@ export const fetchUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-
       if (!token) {
         return rejectWithValue("No token found");
       }
-
-      const response = await axios.get("/auth/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      // The axios instance will attach the token automatically
+      const response = await axios.get("/auth/user");
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Fetch failed");
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err));
     }
-  }
+  },
 );
