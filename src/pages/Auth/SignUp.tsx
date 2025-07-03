@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { DollarSign } from "lucide-react";
+import { DollarSign, User, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { registerUser } from "../../redux/auth/authThunk";
+import { motion } from "framer-motion";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -72,8 +73,8 @@ const SignUp = () => {
       if (registerUser.fulfilled.match(resultAction)) {
         navigate("/dashboard");
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload = (resultAction as any).payload;
-
         if (payload?.errors && Array.isArray(payload.errors)) {
           const serverErrors: { [key: string]: string } = {};
           payload.errors.forEach((err: { field: string; message: string }) => {
@@ -96,7 +97,7 @@ const SignUp = () => {
           });
         }
       }
-    } catch (error) {
+    } catch {
       setFieldErrors({
         general: "Network error. Please try again later.",
       });
@@ -105,63 +106,62 @@ const SignUp = () => {
     }
   };
 
+  const getIcon = (name: string) => {
+    if (name === "email") return <Mail className="w-4 h-4 text-gray-400" />;
+    if (name === "password" || name === "confirmPassword")
+      return <Lock className="w-4 h-4 text-gray-400" />;
+    return <User className="w-4 h-4 text-gray-400" />;
+  };
+
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-blue-100"
+      >
+        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-blue-900">
           <DollarSign className="w-6 h-6 text-blue-600 mr-2" />
           My Budget
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
+        <h2 className="text-xl font-semibold text-center text-blue-800 mb-6">
           Create an Account
         </h2>
 
         {fieldErrors.general && (
-          <div className="text-red-600 text-sm mb-4 text-center">
+          <div className="text-red-600 text-sm mb-4 text-center font-medium">
             {fieldErrors.general}
           </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {[
-            {
-              name: "first_name",
-              type: "text",
-              placeholder: "First Name",
-            },
-            {
-              name: "last_name",
-              type: "text",
-              placeholder: "Last Name",
-            },
-            {
-              name: "email",
-              type: "email",
-              placeholder: "Email",
-            },
-            {
-              name: "password",
-              type: "password",
-              placeholder: "Password",
-            },
+            { name: "first_name", type: "text", placeholder: "First Name" },
+            { name: "last_name", type: "text", placeholder: "Last Name" },
+            { name: "email", type: "email", placeholder: "Email" },
+            { name: "password", type: "password", placeholder: "Password" },
             {
               name: "confirmPassword",
               type: "password",
               placeholder: "Confirm Password",
             },
           ].map(({ name, type, placeholder }) => (
-            <div key={name}>
+            <div key={name} className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                {getIcon(name)}
+              </div>
               <input
                 type={type}
                 name={name}
                 placeholder={placeholder}
                 value={form[name as keyof typeof form]}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
                   fieldErrors[name]
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-300"
+                    ? "border-red-500 focus:ring-red-300"
+                    : "border-gray-300 focus:ring-blue-200"
                 }`}
                 aria-invalid={!!fieldErrors[name]}
               />
@@ -171,25 +171,26 @@ const SignUp = () => {
             </div>
           ))}
 
-          <button
+          <motion.button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition disabled:opacity-50"
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create an Account"}
-          </button>
+          </motion.button>
 
-          <p className="text-sm text-center text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-center text-gray-600">
             Already have an account?{" "}
             <span
               onClick={() => navigate("/login")}
-              className="text-blue-600 hover:underline cursor-pointer"
+              className="text-blue-600 hover:underline cursor-pointer font-medium"
             >
               Login here
             </span>
           </p>
         </form>
-      </div>
+      </motion.div>
     </section>
   );
 };

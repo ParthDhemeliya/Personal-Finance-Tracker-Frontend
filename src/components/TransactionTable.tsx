@@ -102,7 +102,7 @@ const TransactionTable = ({
                   {onEdit && type === "income" && tx.type === "income" && (
                     <button
                       onClick={() => onEdit(mapIncomeEntryToTransaction(tx))}
-                      className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200"
+                      className=" cursor-pointer text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition duration-200"
                     >
                       <Pencil className="w-4 h-4" />
                       Edit
@@ -119,7 +119,7 @@ const TransactionTable = ({
                   )}
                   <button
                     onClick={() => setDeleteTargetId(tx._id)}
-                    className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200"
+                    className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200 "
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -154,13 +154,13 @@ const TransactionTable = ({
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => setDeleteTargetId(null)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded cursor-pointer hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded cursor-pointer hover:bg-red-700"
               >
                 Confirm
               </button>

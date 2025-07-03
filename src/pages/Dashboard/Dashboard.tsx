@@ -6,7 +6,6 @@ import {
   ArrowDownIcon,
   // Home,
 } from "lucide-react";
-import AlertBanner from "../../components/Dashboard/AlertBanner";
 import { useState, useEffect } from "react";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { useAppSelector } from "../../hooks/useTypedSelector";
@@ -37,16 +36,11 @@ const Dashboard = () => {
   const expensePercentChange = useAppSelector(
     (state) => state.expenseStats.percentChange,
   );
-  // Removed unused selectors for loading and savings goal (now handled in SavingsGoalCard)
 
   // Modal state for Add Income/Expense
   const [transactionModalOpen, setTransactionModalOpen] = useState<
     false | "income" | "expense"
   >(false);
-
-  // Example: You can replace these with real logic from Redux or props
-  const [showOverspend, setShowOverspend] = useState(true);
-  const [showMissedGoal, setShowMissedGoal] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -90,7 +84,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header with Add Income/Expense Buttons aligned right */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -104,14 +97,13 @@ const Dashboard = () => {
           </div>
           <div className="flex flex-wrap gap-4 justify-end">
             <button
-              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
+              className="px-5 py-2 rounded-lg bg-blue-100 text-blue-800 font-semibold border border-blue-200 hover:bg-blue-200 hover:text-blue-900 transition cursor-pointer"
               onClick={() => setTransactionModalOpen("income")}
             >
               + Add Income
             </button>
             <button
-              className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition"
-              style={{ backgroundColor: "var(--color-red-600)" }}
+              className="px-5 py-2 rounded-lg bg-red-100 text-red-800 font-semibold border border-red-200 hover:bg-red-200 hover:text-red-900 transition cursor-pointer"
               onClick={() => setTransactionModalOpen("expense")}
             >
               + Add Expense
@@ -126,18 +118,6 @@ const Dashboard = () => {
             onSubmit={handleTransactionSubmit}
             mode="add"
             type={transactionModalOpen}
-          />
-        )}
-        {showMissedGoal && (
-          <AlertBanner
-            type="error"
-            message={
-              <>
-                <strong>Heads up:</strong> You are behind on your savings goal
-                progress.
-              </>
-            }
-            onClose={() => setShowMissedGoal(false)}
           />
         )}
 

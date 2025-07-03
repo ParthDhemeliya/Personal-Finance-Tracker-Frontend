@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-
 import {
   ArrowRight,
   BarChart3,
@@ -9,8 +8,10 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+
 const LandingPage = () => {
   const navigate = useNavigate();
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -28,7 +29,8 @@ const LandingPage = () => {
         console.log("Invalid token, redirecting to login", err);
       }
     }
-  }, []);
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-200 flex flex-col">
       <header className="container mx-auto px-4 py-6">
@@ -43,20 +45,21 @@ const LandingPage = () => {
             <button
               onClick={() => navigate("/login")}
               type="button"
-              className="bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 rounded px-4 py-2 shadow-sm transition"
+              className="cursor-pointer bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 rounded px-4 py-2 shadow-sm transition"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate("/signup")}
               type="button"
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 shadow-sm transition"
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 shadow-sm transition"
             >
               Sign Up
             </button>
           </div>
         </nav>
       </header>
+
       <main className="container mx-auto px-4 py-16 flex-1 flex flex-col justify-center">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 drop-shadow-lg">
@@ -80,13 +83,14 @@ const LandingPage = () => {
             <Link to="/signup">
               <button
                 type="button"
-                className="bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white px-10 py-3 rounded-full text-lg flex items-center justify-center shadow-lg transition-all duration-200 group"
+                className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white px-10 py-3 rounded-full text-lg flex items-center justify-center shadow-lg transition-all duration-200 group"
               >
                 Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>
           </div>
+
           <div className="grid md:grid-cols-3 gap-8 mt-16">
             <div className="bg-white rounded-xl p-8 shadow-xl hover:shadow-2xl transition group border-t-4 border-blue-200 hover:border-blue-400">
               <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
@@ -100,6 +104,7 @@ const LandingPage = () => {
                 understand where your money goes.
               </p>
             </div>
+
             <div className="bg-white rounded-xl p-8 shadow-xl hover:shadow-2xl transition group border-t-4 border-green-200 hover:border-green-400">
               <div className="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
                 <PieChart className="h-7 w-7 text-green-600" />
@@ -112,6 +117,7 @@ const LandingPage = () => {
                 limits.
               </p>
             </div>
+
             <div className="bg-white rounded-xl p-8 shadow-xl hover:shadow-2xl transition group border-t-4 border-purple-200 hover:border-purple-400">
               <div className="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
                 <TrendingUp className="h-7 w-7 text-purple-600" />
@@ -127,6 +133,7 @@ const LandingPage = () => {
           </div>
         </div>
       </main>
+
       <footer className="container mx-auto px-4 py-8 mt-16">
         <div className="text-center text-gray-500 text-sm">
           <p>&copy; 2024 FinanceTracker. All rights reserved.</p>
@@ -135,4 +142,5 @@ const LandingPage = () => {
     </div>
   );
 };
+
 export default LandingPage;

@@ -1,6 +1,3 @@
-// import { ITransaction } from "../types/Transaction";
-// import { IncomeEntry } from "../types/Interface";
-
 import type { IncomeEntry } from "../types/Interface";
 import type { ITransaction } from "../types/Transaction";
 

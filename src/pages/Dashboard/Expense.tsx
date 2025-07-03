@@ -1,7 +1,6 @@
-import { Wallet, Plus } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import TransactionModal from "../../components/TransactionModal";
 import TransactionTable from "../../components/TransactionTable";
 import Pagination from "../../components/Pagination";
@@ -16,7 +15,7 @@ import {
 import { setPage } from "../../redux/expense/expense.slice";
 import type { ITransaction } from "../../types/Transaction";
 import type { IncomeEntry, ExpenseEntry } from "../../types/Interface";
-import { showSuccess } from "../../utils/toastUtils";
+import useToast from "../../hooks/useToast";
 
 const PAGE_LIMIT = 5;
 
@@ -30,7 +29,7 @@ const Expense = () => {
     totalAmount,
     loading,
   } = useSelector((state: RootState) => state.expenses);
-
+  const { showSuccess, showError } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<ITransaction | null>(null);
@@ -56,13 +55,11 @@ const Expense = () => {
               data: entry as Omit<ExpenseEntry, "_id">,
             }),
           ).unwrap();
-          showSuccess("Expense updated successfully!");
         } else {
           await dispatch(
             addExpense(entry as Omit<ExpenseEntry, "_id">),
           ).unwrap();
           dispatch(setPage(1));
-          showSuccess("Expense added successfully!");
         }
 
         dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
@@ -90,6 +87,7 @@ const Expense = () => {
       dispatch(fetchTotalExpenses());
     } catch (err) {
       console.error("Delete failed:", err);
+      showError("Failed to delete expense. Please try again.");
     }
   };
 
@@ -108,10 +106,9 @@ const Expense = () => {
               setModalOpen(true);
               setSelectedTransaction(null);
             }}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer transition duration-200 shadow-md hover:shadow-lg"
+            className="px-5 py-2 rounded-lg bg-red-100 text-red-800 font-semibold border border-red-200 hover:bg-red-200 hover:text-red-900 transition cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
-            Add Expense
+            + Add Expense
           </button>
         </div>
 

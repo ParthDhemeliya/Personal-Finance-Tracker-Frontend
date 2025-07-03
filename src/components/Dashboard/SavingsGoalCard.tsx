@@ -90,7 +90,7 @@ const SavingsGoalCard = () => {
           <div className="flex gap-2 mt-1">
             <button
               type="button"
-              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs"
+              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs cursor-pointer"
               onClick={() => {
                 setIsEditingGoal(false);
                 setGoalError("");
@@ -104,7 +104,7 @@ const SavingsGoalCard = () => {
             </button>
             <button
               type="submit"
-              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs cursor-pointer"
             >
               Save
             </button>
@@ -112,7 +112,7 @@ const SavingsGoalCard = () => {
         </form>
       ) : (
         <button
-          className="mt-2 mb-4 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs font-semibold"
+          className="mt-2 mb-4 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs font-semibold cursor-pointer"
           onClick={() => {
             setIsEditingGoal(true);
             setGoalInput(savingsGoalTarget ? String(savingsGoalTarget) : "");

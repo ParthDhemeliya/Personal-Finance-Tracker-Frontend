@@ -5,12 +5,12 @@ import { useAppSelector } from "../../hooks/useTypedSelector";
 import { fetchExpenseCategorySummaryThunk } from "../../redux/expense/expenseCategoryThunk";
 
 const COLORS = [
-  "#6366F1", // blue
-  "#22C55E", // green
-  "#F59E42", // yellow
-  "#EF4444", // red
-  "#A78BFA", // purple
-  "#F472B6", // pink
+  "#6366F1",
+  "#22C55E",
+  "#F59E42",
+  "#EF4444",
+  "#A78BFA",
+  "#F472B6",
 ];
 
 const SpendingPieChart = () => {

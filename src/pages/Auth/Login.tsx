@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { loginUser } from "../../redux/auth/authThunk";
 import { useNavigate } from "react-router-dom";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,6 +55,7 @@ const Login = () => {
       if (loginUser.fulfilled.match(res)) {
         navigate("/dashboard");
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload = (res as any).payload;
         if (payload?.message?.toLowerCase().includes("invalid credentials")) {
           setFieldErrors({
@@ -70,7 +72,7 @@ const Login = () => {
           });
         }
       }
-    } catch (err) {
+    } catch {
       setFieldErrors({
         general: "Something went wrong. Please try again later.",
       });
@@ -80,25 +82,29 @@ const Login = () => {
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-blue-100">
+        <div className="flex items-center justify-center mb-6 text-2xl font-bold text-blue-900">
           <DollarSign className="w-6 h-6 text-blue-600 mr-2" />
           My Budget
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
+        <h2 className="text-xl font-semibold text-center text-blue-800 mb-6">
           Sign in to your account
         </h2>
 
         {fieldErrors.general && (
-          <div className="text-red-600 text-sm mb-4 text-center">
+          <div className="text-red-600 text-sm mb-4 text-center font-medium">
             {fieldErrors.general}
           </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          <div>
+          {/* Email */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <Mail className="w-4 h-4 text-gray-400" />
+            </div>
             <input
               type="email"
               name="email"
@@ -108,10 +114,10 @@ const Login = () => {
                 setEmail(e.target.value);
                 setFieldErrors((prev) => ({ ...prev, email: "" }));
               }}
-              className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
                 fieldErrors.email
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-gray-300"
+                  ? "border-red-500 focus:ring-red-300"
+                  : "border-gray-300 focus:ring-blue-200"
               }`}
               aria-invalid={!!fieldErrors.email}
             />
@@ -120,9 +126,13 @@ const Login = () => {
             )}
           </div>
 
-          <div>
+          {/* Password */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <Lock className="w-4 h-4 text-gray-400" />
+            </div>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               value={password}
@@ -130,13 +140,23 @@ const Login = () => {
                 setPassword(e.target.value);
                 setFieldErrors((prev) => ({ ...prev, password: "" }));
               }}
-              className={`w-full px-4 py-2 rounded-lg border text-sm bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              className={`w-full pl-10 pr-10 py-2 rounded-lg border text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
                 fieldErrors.password
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-gray-300"
+                  ? "border-red-500 focus:ring-red-300"
+                  : "border-gray-300 focus:ring-blue-200"
               }`}
               aria-invalid={!!fieldErrors.password}
             />
+            <div
+              className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-400 hover:text-blue-600"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </div>
             {fieldErrors.password && (
               <p className="text-red-500 text-xs mt-1">
                 {fieldErrors.password}
@@ -144,11 +164,12 @@ const Login = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-500 dark:text-gray-300">
+          {/* Remember + Forgot */}
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                className="w-4 h-4 border-gray-300 rounded bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               Remember me
             </label>
@@ -157,19 +178,21 @@ const Login = () => {
             </a>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
           >
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
 
-          <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-            Don’t have an account yet?{" "}
+          {/* Sign Up Link */}
+          <p className="text-sm text-center text-gray-600">
+            Don’t have an account?{" "}
             <span
               onClick={() => navigate("/signup")}
-              className="text-blue-600 hover:underline cursor-pointer"
+              className="text-blue-600 hover:underline cursor-pointer font-medium"
             >
               Sign up
             </span>

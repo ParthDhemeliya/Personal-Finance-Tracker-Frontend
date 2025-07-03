@@ -1,7 +1,7 @@
-import { Wallet, Plus, IndianRupee } from "lucide-react";
+import { Wallet, IndianRupee } from "lucide-react";
 import { useState, useEffect } from "react";
 import TransactionModal from "../../components/TransactionModal";
-import { showSuccess } from "../../utils/toastUtils";
+import useToast from "../../hooks/useToast";
 import TransactionTable from "../../components/TransactionTable";
 import Pagination from "../../components/Pagination";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
@@ -39,7 +39,7 @@ const Income = () => {
     dispatch(setPage(1));
     dispatch(fetchTotalIncome());
   }, [dispatch]);
-
+  const { showSuccess, showError } = useToast();
   const handlePageChange = (page: number) => {
     dispatch(setPage(page));
     dispatch(fetchPaginatedIncomes({ page, limit: PAGE_LIMIT }));
@@ -59,11 +59,9 @@ const Income = () => {
               data: entry as Omit<IncomeEntry, "_id">,
             }),
           ).unwrap();
-          showSuccess("Income updated successfully!");
         } else {
           // Add mode
           await dispatch(addIncome(entry as Omit<IncomeEntry, "_id">)).unwrap();
-          showSuccess("Income added successfully!");
         }
 
         dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
@@ -85,6 +83,7 @@ const Income = () => {
       dispatch(fetchTotalIncome());
     } catch (err) {
       console.error("Delete income failed:", err);
+      showError("Failed to delete income. Please try again.");
     }
   };
 
@@ -109,18 +108,17 @@ const Income = () => {
               setModalOpen(true);
               setSelectedTransaction(null);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer transition duration-200 shadow-md hover:shadow-lg"
+            className="px-5 py-2 rounded-lg bg-blue-100 text-blue-800 font-semibold border border-blue-200 hover:bg-blue-200 hover:text-blue-900 transition cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
-            Add Income
+            + Add Income
           </button>
         </div>
 
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-center gap-2">
-          <IndianRupee className="text-red-600 w-5 h-5" />
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-sm flex items-center gap-2">
+          <IndianRupee className="text-blue-600 w-5 h-5" />
           <h2 className="text-lg font-semibold text-gray-800">
             Total Income:{" "}
-            <span className="text-red-700 font-bold">
+            <span className="text-blue-700 font-bold">
               {overallTotalIncome.toLocaleString()}
             </span>
           </h2>

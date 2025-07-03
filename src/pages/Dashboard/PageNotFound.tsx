@@ -12,7 +12,7 @@ const PageNotFound = () => {
         Please check the URL or return to the dashboard.
       </p>
       <button
-        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        className="cursor-pointer px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         onClick={() => navigate("/dashboard")}
       >
         Go to Dashboard

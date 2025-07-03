@@ -16,11 +16,11 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({
   user,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
- 
+
   return (
     <div
       ref={popupRef}
-      className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-lg z-50 p-4"
+      className="fixed right-0 mt-2 w-64  bg-blue-50 shadow-lg rounded-lg z-50 p-4"
     >
       <div className="flex items-center space-x-3 mb-4">
         <img
@@ -32,10 +32,10 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({
           alt="User"
         />
         <div>
-          <p className="text-sm font-semibold text-gray-800 dark:text-white">
+          <p className="text-sm font-semibold text-blue-900">
             {user?.name || "Neil Sims"}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-300">
+          <p className="text-xs font-semibold text-blue-900">
             {user?.email || "neil@example.com"}
           </p>
         </div>
@@ -43,7 +43,7 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({
       <div className="flex justify-between space-x-2">
         <button
           onClick={onLogout}
-          className="flex-1 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md"
+          className="flex-1 py-1 text-sm bg-red-100 text-red-800 hover:bg-red-200 rounded-md hover:text-red-900 transition cursor-pointer font-semibold"
         >
           Logout
         </button>

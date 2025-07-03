@@ -6,19 +6,21 @@ import { useAppDispatch } from "../hooks/useTypedDispatch";
 import { useAppSelector } from "../hooks/useTypedSelector";
 import { fetchUser } from "../redux/auth/authThunk";
 import { type RootState } from "../redux/store";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import SidebarLinks from "./SidebarLinks";
 
 const NavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const user = useAppSelector((state: RootState) => state.auth.user);
   const userFirstName = user?.first_name;
   const userFullName = `${user?.first_name} ${user?.last_name}`;
-
-  const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -46,7 +48,7 @@ const NavBar = () => {
 
   return (
     <div>
-      {/* 🔵 Top Bar */}
+      {/* 🔵 Top Navbar (Unchanged) */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-blue-50 border-b border-blue-100/80">
         <div className="h-14 px-6 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
@@ -84,50 +86,28 @@ const NavBar = () => {
           </div>
         </div>
       </nav>
-      {/* {side bar } */}
+
+      {/* 🔵 Sidebar with Toggle */}
       <aside className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm">
         <div className="h-full px-4 py-6 space-y-2">
-          {[
-            { label: "Dashboard", path: "/dashboard", color: "gray" },
-            { label: "Income", path: "/income", color: "blue" },
-            { label: "Expense", path: "/expense", color: "red" },
-          ].map(({ label, path, color }) => {
-            const isRouteActive = isActive(path);
+          <button
+            onClick={() => setIsSidebarVisible((prev) => !prev)}
+            className="w-full flex items-center justify-start gap-2 px-4 py-2 mb-2 rounded-lg text-sm font-semibold text-blue-800 bg-blue-100 hover:bg-blue-200 transition"
+          >
+            {isSidebarVisible ? (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                Hide Menu
+              </>
+            ) : (
+              <>
+                <ChevronRight className="w-4 h-4" />
+                Show Menu
+              </>
+            )}
+          </button>
 
-            const colorMap = {
-              gray: {
-                active:
-                  "bg-white text-blue-900 font-bold border border-blue-100",
-                hover: "hover:bg-white hover:text-blue-900",
-              },
-              blue: {
-                active:
-                  "bg-blue-100 text-blue-800 font-bold border border-blue-200",
-                hover: "hover:bg-blue-100 hover:text-blue-800",
-              },
-              red: {
-                active:
-                  "bg-red-100 text-red-800 font-bold border border-red-200",
-                hover: "hover:bg-red-100 hover:text-red-800",
-              },
-            };
-
-            const baseColor = colorMap[color as keyof typeof colorMap];
-
-            return (
-              <Link
-                key={label}
-                to={path}
-                className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isRouteActive
-                    ? baseColor.active + " scale-105 ring-2 ring-blue-200/40"
-                    : `text-blue-900 ${baseColor.hover}`
-                }`}
-              >
-                {label}
-              </Link>
-            );
-          })}
+          {isSidebarVisible && <SidebarLinks currentPath={location.pathname} />}
         </div>
       </aside>
     </div>

@@ -45,7 +45,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
       <button
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className={`w-full bg-white border ${
+        className={`w-full bg-white border cursor-pointer ${
           error ? "border-red-500" : "border-gray-300"
         } text-gray-700 font-medium rounded-lg text-sm px-4 py-2.5 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500`}
       >
@@ -67,7 +67,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
                     if (cat !== "Other (Add your own)") setCustomValue("");
                     setDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className=" cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   {cat}
                 </button>

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { type ITransaction, type TransactionType } from "../types/Transaction";
 import type { PaymentMethod } from "../types/commonTypes";
 import CategoryDropdown from "../common/CategoryDropdown";
-
+import useToast from "../hooks/useToast";
 type FormData = {
   amount: string;
   categoryId: string;
@@ -43,21 +44,26 @@ const TransactionModal = ({
   };
 
   const [customCategoryName, setCustomCategoryName] = useState("");
-  const [formData, setFormData] = useState<FormData>({
-    amount: "",
-    categoryId: "",
-    date: getNowForDateInput(),
-    description: "",
-    paymentMethod: "cash",
-  });
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [errors, setErrors] = useState({
-    amount: "",
-    categoryId: "",
-    date: "",
+  const { showSuccess, showError } = useToast();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<FormData>({
+    defaultValues: {
+      amount: "",
+      categoryId: "",
+      date: getNowForDateInput(),
+      description: "",
+      paymentMethod: "cash",
+    },
   });
 
+  // Set form values when in edit mode and initialData is available
   useEffect(() => {
     if (mode === "edit" && initialData) {
       let categoryId = "";
@@ -93,78 +99,42 @@ const TransactionModal = ({
         }
       }
 
-      setFormData({
-        amount: initialData.amount.toString(),
-        categoryId: categoryId || "",
-        date: initialData.date,
-        description: initialData.description || "",
-        paymentMethod: initialData.paymentMethod,
-      });
+      setValue("amount", initialData.amount.toString());
+      setValue("categoryId", categoryId || "");
+      const formattedDate = initialData.date.split("T")[0];
+      setValue("date", formattedDate);
+      setValue("description", initialData.description || "");
+      setValue("paymentMethod", initialData.paymentMethod);
     }
-  }, [mode, initialData, type]);
+  }, [mode, initialData, type, setValue]);
 
-  const validate = () => {
-    const newErrors = { amount: "", categoryId: "", date: "" };
-    let valid = true;
+  // We watch categoryId so we can reset customCategoryName when it changes away from "custom"
+  const watchedCategoryId = watch("categoryId");
 
-    if (
-      !formData.amount ||
-      isNaN(Number(formData.amount)) ||
-      Number(formData.amount) <= 0
-    ) {
-      newErrors.amount = "Amount must be a positive number";
-      valid = false;
+  useEffect(() => {
+    if (watchedCategoryId !== "custom" && mode !== "edit") {
+      setCustomCategoryName("");
     }
-
-    if (!formData.categoryId.trim()) {
-      newErrors.categoryId = "Category/Source is required";
-      valid = false;
-    }
-
-    if (!formData.date.trim()) {
-      newErrors.date = "Date is required";
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "paymentMethod" ? (value as PaymentMethod) : value,
-    }));
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    let finalCategoryId = formData.categoryId;
-    if (formData.categoryId === "custom" && customCategoryName.trim()) {
+  }, [watchedCategoryId, mode]);
+  const onSubmitHandler = async (data: FormData) => {
+    let finalCategoryId = data.categoryId;
+    if (data.categoryId === "custom" && customCategoryName.trim()) {
       finalCategoryId = customCategoryName.trim();
     }
 
     const isObjectId = isValidObjectId(finalCategoryId);
 
+    const isoDate =
+      data.date.length === 10 ? new Date(data.date).toISOString() : data.date;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let transactionPayload: any;
-    // Always convert date to ISO string for backend
-    const isoDate =
-      formData.date.length === 10
-        ? new Date(formData.date).toISOString()
-        : formData.date;
     if (type === "income") {
       transactionPayload = {
-        amount: Number(formData.amount),
+        amount: Number(data.amount),
         date: isoDate,
-        description: formData.description,
-        paymentMethod: formData.paymentMethod,
+        description: data.description,
+        paymentMethod: data.paymentMethod,
         currency: "USD",
         type: "income",
         incomeSource: isObjectId ? finalCategoryId : undefined,
@@ -172,10 +142,10 @@ const TransactionModal = ({
       };
     } else {
       transactionPayload = {
-        amount: Number(formData.amount),
+        amount: Number(data.amount),
         date: isoDate,
-        description: formData.description,
-        paymentMethod: formData.paymentMethod,
+        description: data.description,
+        paymentMethod: data.paymentMethod,
         currency: "USD",
         type: "expense",
         categoryId: isObjectId ? finalCategoryId : undefined,
@@ -185,9 +155,13 @@ const TransactionModal = ({
 
     try {
       await onSubmit(transactionPayload);
+      const action = mode === "add" ? "added" : "updated";
+      const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+      showSuccess(`${capitalizedType} ${action} successfully`);
       onClose();
     } catch (error) {
       console.error("Error submitting transaction:", error);
+      showError("Something went wrong. Please try again.");
     }
   };
 
@@ -202,7 +176,7 @@ const TransactionModal = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-600 hover:text-red-600"
+          className="cursor-pointer absolute top-4 right-4 text-gray-600 hover:text-red-600"
         >
           <X className="w-6 h-6" />
         </button>
@@ -212,103 +186,112 @@ const TransactionModal = ({
           {type === "income" ? "Income" : "Expense"}
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Amount */}
-          <div>
-            <label className="block font-medium mb-1">Amount (₹)</label>
-            <input
-              name="amount"
-              type="number"
-              value={formData.amount}
-              onChange={handleChange}
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.amount ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="e.g. 1000"
+        <form onSubmit={handleSubmit(onSubmitHandler)}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Amount */}
+            <div>
+              <label className="block font-medium mb-1">Amount (₹)</label>
+              <input
+                {...register("amount", {
+                  required: "Amount is required",
+                  validate: (value) =>
+                    !isNaN(Number(value)) && Number(value) > 0
+                      ? true
+                      : "Amount must be a positive number",
+                })}
+                type="number"
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
+                  errors.amount ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="e.g. 1000"
+              />
+              {errors.amount && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
+
+            {/* Category or Source Dropdown */}
+            <Controller
+              key={`${mode}-${type}-${initialData?._id || "new"}`} // 👈 forces reset when editing different entries
+              control={control}
+              name="categoryId"
+              rules={{ required: "Category/Source is required" }}
+              render={({ field }) => (
+                <CategoryDropdown
+                  type={type}
+                  value={field.value}
+                  customValue={customCategoryName}
+                  setValue={(val) => field.onChange(val)}
+                  setCustomValue={setCustomCategoryName}
+                  error={errors.categoryId?.message}
+                  dropdownOpen={dropdownOpen}
+                  setDropdownOpen={setDropdownOpen}
+                />
+              )}
             />
-            {errors.amount && (
-              <p className="text-sm text-red-600 mt-1">{errors.amount}</p>
-            )}
+            <div>
+              <label className="block font-medium mb-1">Date</label>
+              <input
+                {...register("date", {
+                  required: "Date is required",
+                })}
+                type="date"
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
+                  errors.date ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.date && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.date.message}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <label className="block font-medium mb-1">Payment Method</label>
+              <select
+                {...register("paymentMethod")}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+              >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Description</label>
+              <textarea
+                {...register("description")}
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none focus:outline-none"
+                placeholder="Optional"
+              />
+            </div>
           </div>
 
-          {/* Category or Source Dropdown */}
-          <CategoryDropdown
-            type={type}
-            value={formData.categoryId}
-            customValue={customCategoryName}
-            setValue={(val) =>
-              setFormData((prev) => ({ ...prev, categoryId: val }))
-            }
-            setCustomValue={setCustomCategoryName}
-            error={errors.categoryId}
-            dropdownOpen={dropdownOpen}
-            setDropdownOpen={setDropdownOpen}
-          />
-
-          {/* Date */}
-          <div>
-            <label className="block font-medium mb-1">Date</label>
-            <input
-              name="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, date: e.target.value }))
-              }
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
-                errors.date ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {errors.date && (
-              <p className="text-sm text-red-600 mt-1">{errors.date}</p>
-            )}
-          </div>
-
-          {/* Payment Method */}
-          <div>
-            <label className="block font-medium mb-1">Payment Method</label>
-            <select
-              name="paymentMethod"
-              value={formData.paymentMethod}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+          {/* Actions */}
+          <div className="mt-8 flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium transition cursor-pointer"
             >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="other">Other</option>
-            </select>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold cursor-pointer transition"
+            >
+              {mode === "add" ? "Save" : "Update"}
+            </button>
           </div>
-
-          {/* Description */}
-          <div className="md:col-span-2">
-            <label className="block font-medium mb-1">Description</label>
-            <textarea
-              name="description"
-              rows={3}
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none focus:outline-none"
-              placeholder="Optional"
-            />
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="mt-8 flex justify-end gap-4">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium transition"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
-          >
-            {mode === "add" ? "Save" : "Update"}
-          </button>
-        </div>
+        </form>
       </motion.div>
     </div>
   );
