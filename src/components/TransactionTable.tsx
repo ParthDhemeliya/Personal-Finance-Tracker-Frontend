@@ -46,30 +46,39 @@ const TransactionTable = ({
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="w-full text-base text-gray-800 border border-gray-200 rounded-lg overflow-hidden">
-          <thead className="bg-blue-50 text-sm uppercase text-gray-700">
+      <div className="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table className="min-w-full text-sm md:text-base text-gray-800">
+          <thead className="bg-blue-50 uppercase text-gray-700">
             <tr>
-              <th className="px-6 py-4 border-r text-left">
+              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
                 {type === "income" ? "Source" : "Category"}
               </th>
-              <th className="px-6 py-4 border-r text-left">Amount</th>
-              <th className="px-6 py-4 border-r text-left">Date</th>
-              <th className="px-6 py-4 border-r text-left">Description</th>
-              <th className="px-6 py-4 text-left">Actions</th>
+              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+                Amount
+              </th>
+              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+                Date
+              </th>
+              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+                Description
+              </th>
+              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+                Actions
+              </th>
             </tr>
           </thead>
+
           <tbody>
             {data.map((tx, idx) => (
               <tr
                 key={tx._id}
                 className={`${
                   idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } border-t border-gray-200 hover:bg-blue-50 transition`}
+                } hover:bg-blue-50 border-t border-gray-200 transition`}
               >
-                <td className="px-6 py-5 border-r font-semibold">
+                <td className="px-4 md:px-6 py-4 font-medium whitespace-nowrap">
                   <span
-                    className={`inline-block px-2 py-1 text-sm font-medium rounded-full ${
+                    className={`inline-block px-2 py-1 text-xs md:text-sm font-semibold rounded-full ${
                       type === "income"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-red-100 text-red-700"
@@ -79,14 +88,14 @@ const TransactionTable = ({
                   </span>
                 </td>
 
-                <td className="px-6 py-5 border-r">
-                  <div className="flex items-center gap-2">
+                <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-1 md:gap-2">
                     <IndianRupee className="w-4 h-4 text-gray-500" />
-                    {tx.amount.toLocaleString()}
+                    <span>{tx.amount.toLocaleString()}</span>
                   </div>
                 </td>
 
-                <td className="px-6 py-5 border-r">
+                <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                   {new Date(tx.date).toLocaleDateString("en-IN", {
                     year: "numeric",
                     month: "short",
@@ -94,15 +103,15 @@ const TransactionTable = ({
                   })}
                 </td>
 
-                <td className="px-6 py-5 border-r text-gray-600">
+                <td className="px-4 md:px-6 py-4 text-gray-600 whitespace-nowrap">
                   {tx.description || "—"}
                 </td>
 
-                <td className="px-6 py-5 flex gap-8 items-center">
+                <td className="px-4 md:px-6 py-4 flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center whitespace-nowrap">
                   {onEdit && type === "income" && tx.type === "income" && (
                     <button
                       onClick={() => onEdit(mapIncomeEntryToTransaction(tx))}
-                      className=" cursor-pointer text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition duration-200"
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-semibold transition"
                     >
                       <Pencil className="w-4 h-4" />
                       Edit
@@ -111,7 +120,7 @@ const TransactionTable = ({
                   {onEdit && type === "expense" && tx.type === "expense" && (
                     <button
                       onClick={() => onEdit(tx as ITransaction)}
-                      className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200"
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-semibold transition"
                     >
                       <Pencil className="w-4 h-4" />
                       Edit
@@ -119,7 +128,7 @@ const TransactionTable = ({
                   )}
                   <button
                     onClick={() => setDeleteTargetId(tx._id)}
-                    className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer transition duration-200 "
+                    className="flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-semibold transition"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -154,13 +163,13 @@ const TransactionTable = ({
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => setDeleteTargetId(null)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded cursor-pointer hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-red-600 text-white rounded cursor-pointer hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
               >
                 Confirm
               </button>

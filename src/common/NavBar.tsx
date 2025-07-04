@@ -1,13 +1,14 @@
+// NavBar.tsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import ProfilePopup from "./ProfilePopup";
-import { DollarSign } from "lucide-react";
+import { DollarSign, ChevronDown, ChevronRight } from "lucide-react";
 import { useAppDispatch } from "../hooks/useTypedDispatch";
 import { useAppSelector } from "../hooks/useTypedSelector";
 import { fetchUser } from "../redux/auth/authThunk";
 import { type RootState } from "../redux/store";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import SidebarLinks from "./SidebarLinks";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NavBar = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const NavBar = () => {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const user = useAppSelector((state: RootState) => state.auth.user);
   const userFirstName = user?.first_name;
@@ -48,9 +50,16 @@ const NavBar = () => {
 
   return (
     <div>
-      {/* 🔵 Top Navbar (Unchanged) */}
+      {/* Top Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-blue-50 border-b border-blue-100/80">
         <div className="h-14 px-6 flex items-center justify-between">
+          <button
+            className="sm:hidden text-blue-800"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            ☰
+          </button>
+
           <Link to="/dashboard" className="flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-blue-700" />
             <span className="text-xl font-bold text-blue-900">My Budget</span>
@@ -87,8 +96,44 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* 🔵 Sidebar with Toggle */}
-      <aside className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm">
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black bg-opacity-30 z-30 sm:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+            />
+
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm sm:hidden"
+            >
+              <div className="relative h-full px-4 py-6 space-y-2">
+                <button
+                  className="absolute top-4 right-4 text-blue-900"
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  ✕
+                </button>
+                <SidebarLinks
+                  currentPath={location.pathname}
+                  onNavigate={() => setIsSidebarOpen(false)}
+                />
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden sm:block fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm">
         <div className="h-full px-4 py-6 space-y-2">
           <button
             onClick={() => setIsSidebarVisible((prev) => !prev)}
@@ -106,7 +151,6 @@ const NavBar = () => {
               </>
             )}
           </button>
-
           {isSidebarVisible && <SidebarLinks currentPath={location.pathname} />}
         </div>
       </aside>

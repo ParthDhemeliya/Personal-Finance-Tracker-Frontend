@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 
 type SidebarLinksProps = {
   currentPath: string;
+  onNavigate?: () => void;
 };
 
-const SidebarLinks = ({ currentPath }: SidebarLinksProps) => {
+const SidebarLinks = ({ currentPath, onNavigate }: SidebarLinksProps) => {
   const isActive = (path: string) => currentPath === path;
 
   const navItems = [
@@ -38,6 +39,7 @@ const SidebarLinks = ({ currentPath }: SidebarLinksProps) => {
           <Link
             key={label}
             to={path}
+            onClick={onNavigate}
             className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeStyle
                 ? baseColor.active + " scale-105 ring-2 ring-blue-200/40"

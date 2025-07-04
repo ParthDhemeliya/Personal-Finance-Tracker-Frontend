@@ -17,7 +17,7 @@ import type { ITransaction } from "../../types/Transaction";
 import type { IncomeEntry, ExpenseEntry } from "../../types/Interface";
 import useToast from "../../hooks/useToast";
 
-const PAGE_LIMIT = 5;
+const PAGE_LIMIT = 6;
 
 const Expense = () => {
   const dispatch = useDispatch<AppDispatch>();

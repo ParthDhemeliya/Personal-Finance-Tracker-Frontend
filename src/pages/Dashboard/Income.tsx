@@ -17,7 +17,7 @@ import { setPage } from "../../redux/income/incomeSlice";
 import type { ITransaction } from "../../types/Transaction";
 import type { IncomeEntry, ExpenseEntry } from "../../types/Interface";
 
-const PAGE_LIMIT = 5;
+const PAGE_LIMIT = 8;
 
 const Income = () => {
   const dispatch = useAppDispatch();
