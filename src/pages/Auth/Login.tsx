@@ -169,7 +169,7 @@ const Login = () => {
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
               Remember me
             </label>
