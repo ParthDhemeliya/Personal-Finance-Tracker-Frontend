@@ -2,14 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppSelector } from "@/hooks/useTypedSelector";
-import { fetchUser } from "@/redux/auth/authThunk";
-import { useAppDispatch } from "@/hooks/useTypedDispatch";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { useAppSelector } from "../../hooks/useTypedSelector";
+import type { RootState } from "../../redux/store";
+import { fetchUser } from "../../redux/auth/authThunk";
 
 export default function LandingPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user, loading } = useAppSelector((state) => state.auth);
+  const { user, loading } = useAppSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     dispatch(fetchUser());

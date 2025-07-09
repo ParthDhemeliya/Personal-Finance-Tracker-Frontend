@@ -124,7 +124,7 @@ const NavBar = () => {
                   ✕
                 </button>
                 <SidebarLinks
-                  currentPath={pathname}
+                  currentPath={pathname ?? ""}
                   onNavigate={() => setIsSidebarOpen(false)}
                 />
               </div>
@@ -152,7 +152,7 @@ const NavBar = () => {
               </>
             )}
           </button>
-          {isSidebarVisible && <SidebarLinks currentPath={pathname} />}
+          {isSidebarVisible && <SidebarLinks currentPath={pathname ?? ""} />}
         </div>
       </aside>
     </div>

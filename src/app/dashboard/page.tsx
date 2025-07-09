@@ -8,20 +8,20 @@ import {
   ArrowDownIcon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useAppDispatch } from "@/hooks/useTypedDispatch";
-import { useAppSelector } from "@/hooks/useTypedSelector";
-import { fetchUser } from "@/redux/auth/authThunk";
-import { fetchBalanceThunk } from "@/redux/balance/balanceThunk";
-import { fetchIncomeStatsThunk } from "@/redux/income/incomeStatsThunk";
-import { fetchExpenseStatsThunk } from "@/redux/expense/expenseStatsThunk";
-import { fetchSavingsGoalThunk } from "@/redux/savingsGoal/savingsGoalThunk";
-import { fetchRecentTransactionsThunk } from "@/redux/recentTransactions/recentTransactionsThunk";
-import RecentTransactionsList from "@/components/RecentTransactionsList";
-import SavingsGoalCard from "@/components/Dashboard/SavingsGoalCard";
-import SpendingPieChart from "@/components/Dashboard/SpendingPieChart";
-import TransactionModal from "@/components/TransactionModal";
-import { addIncome } from "@/redux/income/incomeThunk";
-import { addExpense } from "@/redux/expense/expense.thunks";
+import SavingsGoalCard from "../../components/Dashboard/SavingsGoalCard";
+import SpendingPieChart from "../../components/Dashboard/SpendingPieChart";
+import RecentTransactionsList from "../../components/RecentTransactionsList";
+import TransactionModal from "../../components/TransactionModal";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { useAppSelector } from "../../hooks/useTypedSelector";
+import { fetchUser } from "../../redux/auth/authThunk";
+import { fetchBalanceThunk } from "../../redux/balance/balanceThunk";
+import { addExpense } from "../../redux/expense/expense.thunks";
+import { fetchExpenseStatsThunk } from "../../redux/expense/expenseStatsThunk";
+import { fetchIncomeStatsThunk } from "../../redux/income/incomeStatsThunk";
+import { addIncome } from "../../redux/income/incomeThunk";
+import { fetchRecentTransactionsThunk } from "../../redux/recentTransactions/recentTransactionsThunk";
+import { fetchSavingsGoalThunk } from "../../redux/savingsGoal/savingsGoalThunk";
 
 export default function DashboardPage() {
   const dispatch = useAppDispatch();

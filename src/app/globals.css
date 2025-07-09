@@ -1,4 +1,1 @@
-@import "tailwindcss/preflight";
-@tailwind utilities;
-
-/* Add any global styles below */
+@import "tailwindcss";

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAppDispatch } from "@/hooks/useTypedDispatch";
-import { useAppSelector } from "@/hooks/useTypedSelector";
-import { registerUser, fetchUser } from "@/redux/auth/authThunk";
-import useToast from "@/hooks/useToast";
+import useToast from "../../hooks/useToast";
+import { useAppDispatch } from "../../hooks/useTypedDispatch";
+import { useAppSelector } from "../../hooks/useTypedSelector";
+import { fetchUser, registerUser } from "../../redux/auth/authThunk";
 
 export default function SignupPage() {
   const router = useRouter();

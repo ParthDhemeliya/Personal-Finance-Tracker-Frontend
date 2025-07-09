@@ -1,21 +1,15 @@
 interface PaginationProps {
-  total: number;
   page: number;
   totalPages: number;
   onPageChange: (newPage: number) => void;
 }
 
-const Pagination = ({
-  total,
-  page,
-  totalPages,
-  onPageChange,
-}: PaginationProps) => {
+const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) => {
+  if (totalPages < 1) return null;
   const isFirst = page === 1;
   const isLast = page === totalPages;
-  console.log(total);
   const generatePageButtons = () => {
-    const buttons = [];
+    const buttons: React.ReactNode[] = [];
     const range = 2;
     const start = Math.max(1, page - range);
     const end = Math.min(totalPages, page + range);
@@ -25,9 +19,11 @@ const Pagination = ({
         <button
           key={i}
           onClick={() => onPageChange(i)}
+          aria-current={i === page ? "page" : undefined}
           className={`cursor-pointer px-3 py-1 rounded-md transition text-sm font-medium shadow-sm border border-blue-200 hover:bg-blue-100
             ${i === page ? "bg-blue-600 text-white" : "bg-white text-blue-600"}
           `}
+          type="button"
         >
           {i}
         </button>,
