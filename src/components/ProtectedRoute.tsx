@@ -16,10 +16,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
-
-  useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
     }

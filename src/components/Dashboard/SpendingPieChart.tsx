@@ -18,7 +18,7 @@ const SpendingPieChart = () => {
   const { data, loading, error } = useAppSelector(
     (state) => state.expenseCategory,
   );
-  // Get current month in YYYY-MM
+
   const now = new Date();
   const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 

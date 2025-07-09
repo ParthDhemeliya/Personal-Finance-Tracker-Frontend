@@ -1,7 +1,10 @@
 "use client";
 
-import DashboardLayout from "@/common/DashboardLayout";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Inter } from "next/font/google";
+import DashboardLayout from "../../common/DashboardLayout";
+import ProtectedRoute from "../../components/ProtectedRoute";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export default function DashboardSectionLayout({
   children,
@@ -10,7 +13,9 @@ export default function DashboardSectionLayout({
 }) {
   return (
     <ProtectedRoute>
-      <DashboardLayout>{children}</DashboardLayout>
+      <div className={inter.className}>
+        <DashboardLayout>{children}</DashboardLayout>
+      </div>
     </ProtectedRoute>
   );
 }

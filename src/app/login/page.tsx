@@ -20,10 +20,6 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
-
-  useEffect(() => {
     if (user && !loading) {
       router.push("/dashboard");
     }

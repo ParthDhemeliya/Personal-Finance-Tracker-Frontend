@@ -23,10 +23,6 @@ export default function SignupPage() {
   });
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
-
-  useEffect(() => {
     if (user && !loading) {
       router.push("/dashboard");
     }

@@ -41,18 +41,42 @@ export default function DashboardPage() {
   const [transactionModalOpen, setTransactionModalOpen] = useState<
     false | "income" | "expense"
   >(false);
-
+  console.log(user, "userrrrr");
+  // New: loading and error state for user fetch
+  const [userLoading, setUserLoading] = useState(false);
+  const [userError, setUserError] = useState<string | null>(null);
+  const [userFetchAttempted, setUserFetchAttempted] = useState(false);
+  // console.log("userrr",user);
   useEffect(() => {
-    if (!user) {
-      dispatch(fetchUser());
-      return;
-    }
-    dispatch(fetchBalanceThunk());
-    dispatch(fetchIncomeStatsThunk());
-    dispatch(fetchExpenseStatsThunk());
-    dispatch(fetchSavingsGoalThunk());
-    dispatch(fetchRecentTransactionsThunk(5));
-  }, [dispatch, user]);
+    const fetchData = async () => {
+      if (!user && !userFetchAttempted) {
+        console.log("giiii");
+        try {
+          setUserLoading(true);
+          await dispatch(fetchUser()).unwrap();
+        } catch {
+          setUserError("Authentication failed. Please log in again.");
+          setUserFetchAttempted(true);
+          window.location.href = "/login";
+          return;
+        } finally {
+          setUserLoading(false);
+        }
+      }
+
+      // Fetch only once after user is available
+      if (user) {
+        setUserFetchAttempted(true); // Mark to prevent double fetches
+        dispatch(fetchBalanceThunk());
+        dispatch(fetchIncomeStatsThunk());
+        dispatch(fetchExpenseStatsThunk());
+        dispatch(fetchSavingsGoalThunk());
+        dispatch(fetchRecentTransactionsThunk(5));
+      }
+    };
+
+    fetchData();
+  }, [dispatch, user, userFetchAttempted]);
 
   // Handler for submitting a new transaction
   const handleTransactionSubmit = async (
@@ -80,6 +104,10 @@ export default function DashboardPage() {
     dispatch(fetchRecentTransactionsThunk(5));
     setTransactionModalOpen(false);
   };
+
+  // New: Show loading or error state
+  if (userLoading) return <div>Loading...</div>;
+  if (userError) return <div>{userError}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">

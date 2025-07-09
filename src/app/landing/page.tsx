@@ -13,10 +13,6 @@ export default function LandingPage() {
   const { user, loading } = useAppSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
-
-  useEffect(() => {
     if (user && !loading) {
       router.push("/dashboard");
     }

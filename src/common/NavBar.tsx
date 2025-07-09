@@ -4,9 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import ProfilePopup from "./ProfilePopup";
 import { DollarSign, ChevronDown, ChevronRight } from "lucide-react";
-import { useAppDispatch } from "../hooks/useTypedDispatch";
 import { useAppSelector } from "../hooks/useTypedSelector";
-import { fetchUser } from "../redux/auth/authThunk";
 import { type RootState } from "../redux/store";
 import SidebarLinks from "./SidebarLinks";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const popupRef = useRef<HTMLDivElement>(null);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -30,11 +27,6 @@ const NavBar = () => {
     router.push("/");
     setIsPopupOpen(false);
   };
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) dispatch(fetchUser());
-  }, [dispatch]);
 
   useEffect(() => {
     const handler = (event: MouseEvent) => {
