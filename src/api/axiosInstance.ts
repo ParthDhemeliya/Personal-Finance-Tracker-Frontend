@@ -1,8 +1,9 @@
 import axios from "axios";
+/// <reference types="node" />
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api",
-  // withCredentials: true,
+  baseURL: process.env.NEXT_PUBLIC_API_URL + "/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },

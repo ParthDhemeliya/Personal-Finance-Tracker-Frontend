@@ -1,5 +1,6 @@
 // NavBar.tsx
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import ProfilePopup from "./ProfilePopup";
 import { DollarSign, ChevronDown, ChevronRight } from "lucide-react";
@@ -11,8 +12,8 @@ import SidebarLinks from "./SidebarLinks";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NavBar = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +27,7 @@ const NavBar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/");
+    router.push("/");
     setIsPopupOpen(false);
   };
 
@@ -60,7 +61,7 @@ const NavBar = () => {
             ☰
           </button>
 
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-blue-700" />
             <span className="text-xl font-bold text-blue-900">My Budget</span>
           </Link>
@@ -123,7 +124,7 @@ const NavBar = () => {
                   ✕
                 </button>
                 <SidebarLinks
-                  currentPath={location.pathname}
+                  currentPath={pathname}
                   onNavigate={() => setIsSidebarOpen(false)}
                 />
               </div>
@@ -151,7 +152,7 @@ const NavBar = () => {
               </>
             )}
           </button>
-          {isSidebarVisible && <SidebarLinks currentPath={location.pathname} />}
+          {isSidebarVisible && <SidebarLinks currentPath={pathname} />}
         </div>
       </aside>
     </div>

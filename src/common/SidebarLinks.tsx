@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 type SidebarLinksProps = {
   currentPath: string;
@@ -10,8 +10,8 @@ const SidebarLinks = ({ currentPath, onNavigate }: SidebarLinksProps) => {
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard", color: "gray" },
-    { label: "Income", path: "/income", color: "blue" },
-    { label: "Expense", path: "/expense", color: "red" },
+    { label: "Income", path: "/dashboard/income", color: "blue" },
+    { label: "Expense", path: "/dashboard/expense", color: "red" },
   ];
 
   const colorMap = {
@@ -38,7 +38,7 @@ const SidebarLinks = ({ currentPath, onNavigate }: SidebarLinksProps) => {
         return (
           <Link
             key={label}
-            to={path}
+            href={path}
             onClick={onNavigate}
             className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeStyle
