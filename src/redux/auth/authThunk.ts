@@ -9,18 +9,37 @@ interface AuthPayload {
   password: string;
 }
 
+// export const loginUser = createAsyncThunk(
+//   "auth/login",
+//   async ({ email, password }: AuthPayload, thunkAPI) => {
+//     try {
+//       const response = await axios.post("/auth/login", { email, password });
+//       // Store token in localStorage for authenticated requests
+//       if (response.data && response.data.token) {
+//         localStorage.setItem("token", response.data.token);
+//       }
+//       console.log("loginUser response.data:", response.data);
+//       return response.data;
+//     } catch (err: unknown) {
+//       return thunkAPI.rejectWithValue(getErrorMessage(err));
+//     }
+//   },
+// );
+// authThunk.ts
 export const loginUser = createAsyncThunk(
   "auth/login",
   async ({ email, password }: AuthPayload, thunkAPI) => {
     try {
       const response = await axios.post("/auth/login", { email, password });
-      // Store token in localStorage for authenticated requests
-      if (response.data && response.data.token) {
-        localStorage.setItem("token", response.data.token);
+      const { token, email: userEmail, id } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
       }
-      console.log(response.data.token);
-      return response.data;
-    } catch (err: unknown) {
+
+      // Return only what's available
+      return { token, email: userEmail, id };
+    } catch (err) {
       return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
@@ -37,6 +56,7 @@ export const registerUser = createAsyncThunk(
         password,
       });
       localStorage.setItem("token", response.data.token);
+      console.log("registerUser response.data:", response.data);
       return response.data;
     } catch (err: unknown) {
       return thunkAPI.rejectWithValue(getErrorMessage(err));
@@ -49,13 +69,15 @@ export const fetchUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
+      console.log("fetchUser token:", token);
       if (!token) {
         return rejectWithValue("No token found");
       }
-      // The axios instance will attach the token automatically
       const response = await axios.get("/auth/user");
+      console.log("fetchUser response:", response.data);
       return response.data;
     } catch (err: unknown) {
+      console.error("fetchUser error:", err);
       return rejectWithValue(getErrorMessage(err));
     }
   },

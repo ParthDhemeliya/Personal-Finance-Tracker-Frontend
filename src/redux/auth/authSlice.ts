@@ -11,6 +11,7 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  hasFetchedUser: boolean;
 }
 
 const initialState: AuthState = {
@@ -18,6 +19,7 @@ const initialState: AuthState = {
   token: null,
   loading: false,
   error: null,
+  hasFetchedUser: false,
 };
 
 const authSlice = createSlice({
@@ -27,6 +29,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
+      state.hasFetchedUser = false;
       localStorage.removeItem("token");
     },
   },
@@ -38,14 +41,14 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
+        state.token = action.payload.token;
         state.user = {
           id: action.payload.id,
           email: action.payload.email,
-          first_name: action.payload.first_name,
-          last_name: action.payload.last_name,
+          first_name: "", // We'll fill this after fetchUser
+          last_name: "",
         };
-        state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
+        state.hasFetchedUser = false; // Trigger fetchUser
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -59,13 +62,13 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = {
-          id: action.payload.id,
+          id: action.payload._id,
           email: action.payload.email,
           first_name: action.payload.first_name,
           last_name: action.payload.last_name,
         };
         state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
+        state.hasFetchedUser = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -83,10 +86,12 @@ const authSlice = createSlice({
           first_name: action.payload.first_name,
           last_name: action.payload.last_name,
         };
+        state.hasFetchedUser = true;
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        state.hasFetchedUser = true; // Prevent infinite retry loop
       });
   },
 });

@@ -73,6 +73,7 @@ export default function IncomePage() {
         setSelectedTransaction(null);
       } catch (err) {
         console.error("Add/Edit income failed:", err);
+        showError("Failed to save income. Please try again.");
       }
     }
   };

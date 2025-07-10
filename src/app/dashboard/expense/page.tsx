@@ -70,6 +70,7 @@ export default function ExpensePage() {
         setSelectedTransaction(null);
       } catch (err) {
         console.error("Add/update expense failed:", err);
+        showError("Failed to save expense. Please try again.");
       }
     }
   };

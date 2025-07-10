@@ -5,14 +5,19 @@ import { useState, useRef, useEffect } from "react";
 import ProfilePopup from "./ProfilePopup";
 import { DollarSign, ChevronDown, ChevronRight } from "lucide-react";
 import { useAppSelector } from "../hooks/useTypedSelector";
-import { type RootState } from "../redux/store";
+import { useAppDispatch } from "../hooks/useTypedDispatch";
 import SidebarLinks from "./SidebarLinks";
 import { motion, AnimatePresence } from "framer-motion";
+import { logout } from "@/redux/auth/authSlice";
+import { RootState } from "@/redux/store";
+import useToast from "../hooks/useToast";
 
 const NavBar = () => {
+  const dispatch = useAppDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const popupRef = useRef<HTMLDivElement>(null);
+  const { showSuccess } = useToast();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -20,10 +25,15 @@ const NavBar = () => {
 
   const user = useAppSelector((state: RootState) => state.auth.user);
   const userFirstName = user?.first_name;
-  const userFullName = `${user?.first_name} ${user?.last_name}`;
+  const userFullName = `${user?.first_name ?? ""} ${user?.last_name ?? ""}`;
+
+  // NavBar no longer needs to fetch user data
+  // ProtectedRoute handles authentication and user fetching
+  // This prevents duplicate fetchUser calls
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    dispatch(logout());
+    showSuccess("Logged out successfully!");
     router.push("/");
     setIsPopupOpen(false);
   };
@@ -37,13 +47,13 @@ const NavBar = () => {
         setIsPopupOpen(false);
       }
     };
+
     if (isPopupOpen) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [isPopupOpen]);
 
   return (
     <div>
-      {/* Top Navbar */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-blue-50 border-b border-blue-100/80">
         <div className="h-14 px-6 flex items-center justify-between">
           <button
@@ -75,12 +85,16 @@ const NavBar = () => {
 
             {isPopupOpen && (
               <ProfilePopup
-                user={{
-                  name: userFullName,
-                  email: user?.email,
-                  profile:
-                    "https://flowbite.com/docs/images/people/profile-picture-5.jpg",
-                }}
+                user={
+                  user
+                    ? {
+                        name: userFullName,
+                        email: user.email,
+                        profile:
+                          "https://flowbite.com/docs/images/people/profile-picture-5.jpg",
+                      }
+                    : undefined
+                }
                 onClose={() => setIsPopupOpen(false)}
                 onLogout={handleLogout}
               />
@@ -89,7 +103,6 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Mobile Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <>
@@ -100,7 +113,6 @@ const NavBar = () => {
               exit={{ opacity: 0 }}
               onClick={() => setIsSidebarOpen(false)}
             />
-
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -125,7 +137,6 @@ const NavBar = () => {
         )}
       </AnimatePresence>
 
-      {/* Desktop Sidebar */}
       <aside className="hidden sm:block fixed top-0 left-0 z-40 w-64 h-screen pt-14 bg-blue-50 border-r border-blue-100/80 shadow-sm">
         <div className="h-full px-4 py-6 space-y-2">
           <button

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Ensure toast notifications are visible */
+[data-hot-toast] {
+  z-index: 9999 !important;
+}
+
+[data-hot-toast-root] {
+  z-index: 9999 !important;
+}

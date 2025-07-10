@@ -46,7 +46,8 @@ const TransactionTable = ({
 
   return (
     <>
-      <div className="w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      {/* Desktop Table View */}
+      <div className="hidden md:block w-full overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
         <table className="min-w-full text-sm md:text-base text-gray-800">
           <thead className="bg-blue-50 uppercase text-gray-700">
             <tr>
@@ -149,6 +150,90 @@ const TransactionTable = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {data.map((tx, idx) => (
+          <div
+            key={tx._id}
+            className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <span
+                  className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                    type === "income"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {renderCategoryName(tx)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-lg font-semibold">
+                <IndianRupee className="w-4 h-4 text-gray-500" />
+                <span>{tx.amount.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span className="font-medium">Date:</span>
+                <span>
+                  {new Date(tx.date).toLocaleDateString("en-IN", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+
+              {tx.description && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Description:</span>
+                  <span className="text-right flex-1 ml-2">
+                    {tx.description}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-4 pt-3 border-t border-gray-100">
+              {onEdit && type === "income" && tx.type === "income" && (
+                <button
+                  onClick={() => onEdit(mapIncomeEntryToTransaction(tx))}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-semibold transition flex-1 justify-center py-2 rounded border border-blue-200 hover:bg-blue-50"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </button>
+              )}
+              {onEdit && type === "expense" && tx.type === "expense" && (
+                <button
+                  onClick={() => onEdit(tx as ITransaction)}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-semibold transition flex-1 justify-center py-2 rounded border border-blue-200 hover:bg-blue-50"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </button>
+              )}
+              <button
+                onClick={() => setDeleteTargetId(tx._id)}
+                className="flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-semibold transition flex-1 justify-center py-2 rounded border border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {data.length === 0 && (
+          <div className="text-center py-8 text-gray-500 italic text-base bg-white rounded-lg border border-gray-200">
+            No {type} records found.
+          </div>
+        )}
       </div>
 
       {deleteTargetId && (

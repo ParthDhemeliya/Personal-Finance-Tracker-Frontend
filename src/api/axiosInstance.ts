@@ -3,7 +3,6 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL + "/api",
-  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -26,7 +25,8 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      const currentPath = window.location.pathname;
+      window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
     }
     return Promise.reject(error);
   },

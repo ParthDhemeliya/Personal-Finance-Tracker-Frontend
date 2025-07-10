@@ -4,9 +4,11 @@ import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { useAppSelector } from "../../hooks/useTypedSelector";
 import { setSavingsGoalThunk } from "../../redux/savingsGoal/setSavingsGoalThunk";
 import { fetchSavingsGoalThunk } from "../../redux/savingsGoal/savingsGoalThunk";
+import useToast from "../../hooks/useToast";
 
 const SavingsGoalCard = () => {
   const dispatch = useAppDispatch();
+  const { showSuccess, showError } = useToast();
   const savingsGoalTarget = useAppSelector((state) => state.savingsGoal.target);
   const savingsGoalCurrent = useAppSelector(
     (state) => state.savingsGoal.current,
@@ -56,11 +58,13 @@ const SavingsGoalCard = () => {
               await dispatch(
                 setSavingsGoalThunk({ amount: numGoal, targetDate }),
               );
+              showSuccess("Savings goal updated successfully!");
               setGoalSuccess("Goal updated!");
               setTimeout(() => setGoalSuccess(""), 2000);
               setIsEditingGoal(false);
               dispatch(fetchSavingsGoalThunk());
             } catch {
+              showError("Failed to update savings goal. Please try again.");
               setGoalError("Failed to update goal. Please try again.");
             }
           }}

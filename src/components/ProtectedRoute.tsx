@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/hooks/useTypedSelector";
 import { useAppDispatch } from "@/hooks/useTypedDispatch";
@@ -13,15 +13,43 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user, loading } = useAppSelector((state) => state.auth);
+  const { user, loading, hasFetchedUser } = useAppSelector(
+    (state) => state.auth,
+  );
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+    const checkAuthentication = async () => {
+      const token = localStorage.getItem("token");
 
-  if (loading) {
+      if (!token) {
+        // No token, redirect to login with current path
+        const currentPath = window.location.pathname;
+        router.push(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+        return;
+      }
+
+      // If we have a token but no user data and haven't fetched yet
+      if (token && !user && !hasFetchedUser) {
+        try {
+          await dispatch(fetchUser()).unwrap();
+        } catch (error) {
+          // Token is invalid, remove it and redirect to login with current path
+          localStorage.removeItem("token");
+          const currentPath = window.location.pathname;
+          router.push(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+      }
+
+      setIsCheckingAuth(false);
+    };
+
+    checkAuthentication();
+  }, [dispatch, router, user, hasFetchedUser]);
+
+  // Show loading while checking authentication
+  if (isCheckingAuth || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -32,6 +60,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
+  // If no user after authentication check, don't render anything
   if (!user) {
     return null;
   }
