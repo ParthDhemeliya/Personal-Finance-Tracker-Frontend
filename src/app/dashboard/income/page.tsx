@@ -25,7 +25,6 @@ export default function IncomePage() {
   const dispatch = useAppDispatch();
   const {
     data: incomes,
-    total,
     currentPage,
     totalPages,
     loading,
@@ -137,7 +136,6 @@ export default function IncomePage() {
               onEdit={handleEdit}
             />
             <Pagination
-              total={total}
               page={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}

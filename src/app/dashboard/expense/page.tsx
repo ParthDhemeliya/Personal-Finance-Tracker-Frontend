@@ -25,7 +25,6 @@ export default function ExpensePage() {
   const dispatch = useAppDispatch();
   const {
     data: expenses,
-    total,
     page: currentPage,
     totalPages,
     totalAmount,
@@ -138,7 +137,6 @@ export default function ExpensePage() {
               onEdit={handleEdit}
             />
             <Pagination
-              total={total}
               page={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
