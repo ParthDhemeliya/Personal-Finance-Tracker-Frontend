@@ -33,7 +33,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       if (token && !user && !hasFetchedUser) {
         try {
           await dispatch(fetchUser()).unwrap();
-        } catch (error) {
+        } catch {
           // Token is invalid, remove it and redirect to login with current path
           localStorage.removeItem("token");
           const currentPath = window.location.pathname;
