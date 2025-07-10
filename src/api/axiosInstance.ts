@@ -1,16 +1,32 @@
 import axios from "axios";
 /// <reference types="node" />
 
+// Create axios instance without baseURL initially
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL + "/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to attach token
+// Function to get the correct baseURL
+const getBaseURL = () => {
+  if (typeof window !== "undefined") {
+    // Client side
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    console.log("proceee", apiUrl);
+    return apiUrl ? `${apiUrl}/api` : "/api";
+  }
+  // Server side - return a default
+  return "/api";
+};
+
+// Request interceptor to dynamically set baseURL and attach token
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Set baseURL dynamically for each request
+    config.baseURL = getBaseURL();
+
+    // Add token if available
     const token = localStorage.getItem("token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

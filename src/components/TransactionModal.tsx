@@ -236,8 +236,18 @@ const TransactionModal = ({
               <input
                 {...register("date", {
                   required: "Date is required",
+                  validate: (value) => {
+                    const selected = new Date(value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // ignore time
+                    if (selected > today) {
+                      return "Future dates are not allowed";
+                    }
+                    return true;
+                  },
                 })}
                 type="date"
+                max={new Date().toISOString().split("T")[0]} // disables future dates in picker
                 className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
                   errors.date ? "border-red-500" : "border-gray-300"
                 }`}
