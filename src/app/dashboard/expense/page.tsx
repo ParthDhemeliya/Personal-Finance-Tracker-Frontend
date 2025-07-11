@@ -29,6 +29,7 @@ export default function ExpensePage() {
     totalPages,
     totalAmount,
     loading,
+    total,
   } = useAppSelector((state) => state.expenses);
   const { showSuccess, showError } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -140,6 +141,8 @@ export default function ExpensePage() {
               page={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
+              total={total}
+              pageSize={PAGE_LIMIT}
             />
           </>
         )}

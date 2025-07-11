@@ -2,12 +2,22 @@ interface PaginationProps {
   page: number;
   totalPages: number;
   onPageChange: (newPage: number) => void;
+  total: number;
+  pageSize: number; // Added pageSize prop
 }
 
-const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) => {
+const Pagination = ({
+  page,
+  totalPages,
+  onPageChange,
+  total,
+  pageSize,
+}: PaginationProps) => {
   if (totalPages < 1) return null;
   const isFirst = page === 1;
   const isLast = page === totalPages;
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
   const generatePageButtons = () => {
     const buttons: React.ReactNode[] = [];
     const range = 2;
@@ -33,24 +43,29 @@ const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) => {
   };
 
   return (
-    <div className="flex justify-end mt-6 gap-2 items-center">
-      <button
-        disabled={isFirst}
-        onClick={() => onPageChange(page - 1)}
-        className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded disabled:opacity-50 cursor-pointer"
-      >
-        Prev
-      </button>
+    <div className="flex flex-col items-end mt-6 gap-2">
+      <span className="text-sm text-gray-600 mb-1">
+        Showing {total === 0 ? 0 : start}-{end} of {total} items
+      </span>
+      <div className="flex gap-2 items-center">
+        <button
+          disabled={isFirst}
+          onClick={() => onPageChange(page - 1)}
+          className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded disabled:opacity-50 cursor-pointer"
+        >
+          Prev
+        </button>
 
-      {generatePageButtons()}
+        {generatePageButtons()}
 
-      <button
-        disabled={isLast}
-        onClick={() => onPageChange(page + 1)}
-        className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded disabled:opacity-50 cursor-pointer"
-      >
-        Next
-      </button>
+        <button
+          disabled={isLast}
+          onClick={() => onPageChange(page + 1)}
+          className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded disabled:opacity-50 cursor-pointer"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

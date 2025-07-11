@@ -29,6 +29,7 @@ export default function IncomePage() {
     totalPages,
     loading,
     overallTotalIncome,
+    total,
   } = useAppSelector((state) => state.income);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -139,6 +140,8 @@ export default function IncomePage() {
               page={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
+              total={total}
+              pageSize={PAGE_LIMIT}
             />
           </>
         )}
