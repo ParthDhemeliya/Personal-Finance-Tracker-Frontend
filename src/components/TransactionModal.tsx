@@ -239,18 +239,20 @@ const TransactionModal = ({
                   validate: (value) => {
                     const selected = new Date(value);
                     const today = new Date();
-                    today.setHours(0, 0, 0, 0); // ignore time
-                    if (selected > today) {
+                    selected.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+                    if (selected.getTime() > today.getTime()) {
                       return "Future dates are not allowed";
                     }
                     return true;
                   },
                 })}
                 type="date"
-                max={new Date().toISOString().split("T")[0]} // disables future dates in picker
                 className={`w-full border rounded-lg px-4 py-2 focus:outline-none ${
                   errors.date ? "border-red-500" : "border-gray-300"
                 }`}
+                placeholder="YYYY-MM-DD"
+                max={getNowForDateInput()}
               />
               {errors.date && (
                 <p className="text-sm text-red-600 mt-1">

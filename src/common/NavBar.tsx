@@ -27,10 +27,6 @@ const NavBar = () => {
   const userFirstName = user?.first_name;
   const userFullName = `${user?.first_name ?? ""} ${user?.last_name ?? ""}`;
 
-  // NavBar no longer needs to fetch user data
-  // ProtectedRoute handles authentication and user fetching
-  // This prevents duplicate fetchUser calls
-
   const handleLogout = () => {
     dispatch(logout());
     showSuccess("Logged out successfully!");

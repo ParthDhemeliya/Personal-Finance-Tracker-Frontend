@@ -70,7 +70,7 @@ const TransactionTable = ({
           </thead>
 
           <tbody>
-            {data.map((tx, idx) => (
+            {data.slice(0, 6).map((tx, idx) => (
               <tr
                 key={tx._id}
                 className={`${
@@ -154,7 +154,7 @@ const TransactionTable = ({
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {data.map((tx) => (
+        {data.slice(0, 6).map((tx) => (
           <div
             key={tx._id}
             className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
