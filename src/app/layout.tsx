@@ -4,6 +4,7 @@ import "./globals.css";
 import UserBootstrap from "../common/UserBootstrap";
 import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({
   children,
@@ -16,6 +17,8 @@ export default function RootLayout({
         <Providers>
           <UserBootstrap />
           {children}
+
+          <SpeedInsights />
           <Toaster
             position="top-right"
             toastOptions={{
