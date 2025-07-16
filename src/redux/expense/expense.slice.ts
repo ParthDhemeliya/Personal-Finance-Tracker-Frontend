@@ -8,6 +8,7 @@ import {
   updateExpense,
   deleteExpense,
 } from "./expense.thunks";
+import { createAction } from "@reduxjs/toolkit";
 
 interface ExpenseState {
   data: ExpenseEntry[];
@@ -30,6 +31,11 @@ const initialState: ExpenseState = {
   totalAmount: 0,
   currentPage: 1,
 };
+
+export const hydrate = createAction<{
+  data: ExpenseEntry[];
+  overallTotalExpense: number;
+}>("expenses/hydrate");
 
 const expenseSlice = createSlice({
   name: "expenses",
@@ -83,6 +89,11 @@ const expenseSlice = createSlice({
       .addCase(deleteExpense.fulfilled, (state, action) => {
         state.data = state.data.filter((item) => item._id !== action.payload);
         state.total -= 1;
+      })
+
+      .addCase(hydrate, (state, action) => {
+        state.data = action.payload.data;
+        state.totalAmount = action.payload.overallTotalExpense;
       });
   },
 });

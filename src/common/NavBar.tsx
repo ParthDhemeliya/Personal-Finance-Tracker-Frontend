@@ -8,9 +8,9 @@ import { useAppSelector } from "../hooks/useTypedSelector";
 import { useAppDispatch } from "../hooks/useTypedDispatch";
 import SidebarLinks from "./SidebarLinks";
 import { motion, AnimatePresence } from "framer-motion";
-import { logout } from "@/redux/auth/authSlice";
 import { RootState } from "@/redux/store";
 import useToast from "../hooks/useToast";
+import { logout } from "@/redux/auth/authThunk";
 
 const NavBar = () => {
   const dispatch = useAppDispatch();
@@ -27,10 +27,10 @@ const NavBar = () => {
   const userFirstName = user?.first_name;
   const userFullName = `${user?.first_name ?? ""} ${user?.last_name ?? ""}`;
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout());
     showSuccess("Logged out successfully!");
-    router.push("/");
+    router.replace("/");
     setIsPopupOpen(false);
   };
 

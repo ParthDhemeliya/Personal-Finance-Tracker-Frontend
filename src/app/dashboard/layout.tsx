@@ -1,21 +1,14 @@
-"use client";
+import ProtectedLayout from "../(protected)/ProtectedLayout";
+import DashboardShell from "../../components/Dashboard/DashboardShell";
 
-import { Inter } from "next/font/google";
-import DashboardLayout from "../../common/DashboardLayout";
-import ProtectedRoute from "../../components/ProtectedRoute";
-
-const inter = Inter({ subsets: ["latin"] });
-
-export default function DashboardSectionLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
-      <div className={inter.className}>
-        <DashboardLayout>{children}</DashboardLayout>
-      </div>
-    </ProtectedRoute>
+    <ProtectedLayout>
+      <DashboardShell>{children}</DashboardShell>
+    </ProtectedLayout>
   );
 }

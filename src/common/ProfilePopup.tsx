@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+// import { logout } from "@/redux/auth/authThunk";
 
 interface ProfilePopupProps {
   onLogout: () => void;

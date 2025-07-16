@@ -1,4 +1,8 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  type PayloadAction,
+  createAction,
+} from "@reduxjs/toolkit";
 import {
   fetchIncomes,
   fetchPaginatedIncomes,
@@ -28,6 +32,11 @@ const initialState: IncomeState = {
   error: null,
   overallTotalIncome: 0,
 };
+
+export const hydrate = createAction<{
+  data: IncomeEntry[];
+  overallTotalIncome: number;
+}>("income/hydrate");
 
 const incomeSlice = createSlice({
   name: "income",
@@ -92,6 +101,10 @@ const incomeSlice = createSlice({
       })
       .addCase(fetchTotalIncome.rejected, (_action, action) => {
         console.error("Failed to fetch total income:", action.payload);
+      })
+      .addCase(hydrate, (state, action) => {
+        state.data = action.payload.data;
+        state.overallTotalIncome = action.payload.overallTotalIncome;
       });
   },
 });

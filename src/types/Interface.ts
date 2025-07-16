@@ -27,3 +27,22 @@ export interface ExpenseEntry extends BaseTransaction {
 
 // Unified type
 export type TransactionEntry = IncomeEntry | ExpenseEntry;
+
+export interface User {
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  // Add any other user fields you expect from your API
+}
+
+export interface Balance {
+  amount: number;
+  percentChange: number;
+}
+
+export interface Stats {
+  income: number;
+  expense: number;
+  // Add any other stats fields you expect from your API
+}

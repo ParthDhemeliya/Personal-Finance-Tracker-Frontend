@@ -1,48 +1,22 @@
-import axios from "axios";
-/// <reference types="node" />
+// src/api/axiosInstance.ts
 
-// Create axios instance without baseURL initially
+import axios from "axios";
+console.log("AXIOS BASE URL:", process.env.NEXT_PUBLIC_API_URL);
 const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL, // Use deployed backend URL
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
+  timeout: 10000,
 });
-
-// Function to get the correct baseURL
-const getBaseURL = () => {
-  if (typeof window !== "undefined") {
-    // Client side
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    console.log("proceee", apiUrl);
-    return apiUrl ? `${apiUrl}/api` : "/api";
-  }
-  // Server side - return a default
-  return "/api";
-};
-
-// Request interceptor to dynamically set baseURL and attach token
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // Set baseURL dynamically for each request
-    config.baseURL = getBaseURL();
-
-    // Add token if available
-    const token = localStorage.getItem("token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
 
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      const currentPath = window.location.pathname;
-      window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      console.log("Unauthorized error:", error);
+      return;
     }
     return Promise.reject(error);
   },

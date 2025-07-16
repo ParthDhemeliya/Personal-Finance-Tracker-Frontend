@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { jwtDecode } from "jwt-decode";
 import {
   ArrowRight,
   BarChart3,
@@ -11,28 +10,19 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect } from "react";
+import { useAppSelector } from "@/hooks/useTypedSelector";
 
 const LandingPage = () => {
   const router = useRouter();
+  const { user, hasFetchedUser } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded: { exp: number } = jwtDecode(token);
-        const isExpired = decoded.exp * 1000 < Date.now();
-
-        if (!isExpired) {
-          router.push("/dashboard");
-        } else {
-          localStorage.removeItem("token");
-        }
-      } catch (err: unknown) {
-        localStorage.removeItem("token");
-        console.log("Invalid token, redirecting to login", err);
-      }
+    if (hasFetchedUser && user) {
+      router.push("/dashboard");
+    } else {
+      router.push("/");
     }
-  }, [router]);
+  }, [user, hasFetchedUser, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-200 flex flex-col">

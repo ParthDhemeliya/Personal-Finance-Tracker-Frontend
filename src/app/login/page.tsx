@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "../../hooks/useTypedDispatch";
-import { loginUser } from "../../redux/auth/authThunk";
+import { loginUser, fetchUser } from "../../redux/auth/authThunk";
 import { DollarSign, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { fetchUser } from "../../redux/auth/authThunk";
+// import { fetchUser } from "../../redux/auth/authThunk";
 import useToast from "../../hooks/useToast";
 
 const Login = () => {
@@ -43,13 +43,16 @@ const Login = () => {
     setFieldErrors({});
     const errors = validateForm();
 
+    console.log("[Login] handleSubmit called");
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      console.log("[Login] Validation failed:", errors);
       return;
     }
 
     try {
       setIsSubmitting(true);
+      console.log("[Login] Dispatching loginUser...");
       const res = await dispatch(
         loginUser({
           email,
@@ -58,19 +61,18 @@ const Login = () => {
           last_name: "",
         }),
       );
+      console.log("[Login] Dispatch result (loginUser):", res);
 
       if (loginUser.fulfilled.match(res)) {
-        await dispatch(fetchUser()); // ✅ Fetch full profile after login
+        // Fetch full user info before redirect
+
+        const userRes = await dispatch(fetchUser());
+        console.log("[Login] Dispatch result (fetchUser):", userRes);
         showSuccess("Login successful! Welcome back!");
-
-        // Check if there's a redirect URL in the URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get("redirectTo");
-
-        // Redirect to the intended page or dashboard
-        router.push(redirectTo || "/dashboard");
+        router.push("/dashboard");
       } else {
         const payload = (res as { payload?: { message?: string } }).payload;
+        console.log("[Login] Login rejected, payload:", payload);
         if (payload?.message?.toLowerCase().includes("invalid credentials")) {
           showError("Invalid email or password. Please try again.");
           setFieldErrors({
@@ -91,65 +93,17 @@ const Login = () => {
           });
         }
       }
-    } catch {
+    } catch (err) {
+      console.log("[Login] Catch block error:", err);
       showError("Something went wrong. Please try again later.");
       setFieldErrors({
         general: "Something went wrong. Please try again later.",
       });
     } finally {
       setIsSubmitting(false);
+      console.log("[Login] handleSubmit finished");
     }
   };
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setFieldErrors({});
-  //   const errors = validateForm();
-
-  //   if (Object.keys(errors).length > 0) {
-  //     setFieldErrors(errors);
-  //     return;
-  //   }
-
-  //   try {
-  //     setIsSubmitting(true);
-  //     const res = await dispatch(
-  //       loginUser({
-  //         email,
-  //         password,
-  //         first_name: "",
-  //         last_name: "",
-  //       }),
-  //     );
-
-  //     if (loginUser.fulfilled.match(res)) {
-  //       router.push("/dashboard");
-  //     } else {
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //       const payload = (res as any).payload;
-  //       if (payload?.message?.toLowerCase().includes("invalid credentials")) {
-  //         setFieldErrors({
-  //           general: "Invalid email or password. Please try again.",
-  //         });
-  //       } else if (payload?.message?.toLowerCase().includes("network")) {
-  //         setFieldErrors({
-  //           general:
-  //             "Network error. Please check your connection and try again.",
-  //         });
-  //       } else {
-  //         setFieldErrors({
-  //           general: payload?.message || "Login failed. Please try again.",
-  //         });
-  //       }
-  //     }
-  //   } catch {
-  //     setFieldErrors({
-  //       general: "Something went wrong. Please try again later.",
-  //     });
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">

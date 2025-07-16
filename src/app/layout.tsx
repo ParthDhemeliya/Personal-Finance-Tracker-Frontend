@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import { Providers } from "../redux/provider";
 import "./globals.css";
-import UserBootstrap from "../common/UserBootstrap";
+// import UserBootstrap from "../common/UserBootstrap";
 import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -15,7 +15,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <UserBootstrap />
+          {/* <UserBootstrap /> */}
           {children}
 
           <SpeedInsights />

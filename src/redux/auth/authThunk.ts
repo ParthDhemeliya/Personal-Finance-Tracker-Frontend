@@ -9,38 +9,19 @@ interface AuthPayload {
   password: string;
 }
 
-// export const loginUser = createAsyncThunk(
-//   "auth/login",
-//   async ({ email, password }: AuthPayload, thunkAPI) => {
-//     try {
-//       const response = await axios.post("/auth/login", { email, password });
-//       // Store token in localStorage for authenticated requests
-//       if (response.data && response.data.token) {
-//         localStorage.setItem("token", response.data.token);
-//       }
-//       console.log("loginUser response.data:", response.data);
-//       return response.data;
-//     } catch (err: unknown) {
-//       return thunkAPI.rejectWithValue(getErrorMessage(err));
-//     }
-//   },
-// );
-// authThunk.ts
 export const loginUser = createAsyncThunk(
   "auth/login",
-  async ({ email, password }: AuthPayload, thunkAPI) => {
+  async (credentials: AuthPayload, { rejectWithValue }) => {
     try {
-      const response = await axios.post("/auth/login", { email, password });
-      const { token, email: userEmail, id } = response.data;
-
-      if (token) {
-        localStorage.setItem("token", token);
-      }
-
-      // Return only what's available
-      return { token, email: userEmail, id };
+      console.log("[loginUser] Credentials:", credentials);
+      const response = await axios.post("/auth/login", credentials);
+      console.log("[loginUser] Response:", response);
+      // Return the full response data
+      console.log("[loginUser] Response Data:", response.data);
+      return response.data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(getErrorMessage(err));
+      console.log("[loginUser] Error:", err);
+      return rejectWithValue(err.response?.data || { message: "Login failed" });
     }
   },
 );
@@ -49,16 +30,15 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async ({ first_name, last_name, email, password }: AuthPayload, thunkAPI) => {
     try {
-      const response = await axios.post("/auth/signup", {
+      await axios.post("/auth/signup", {
         first_name,
         last_name,
         email,
         password,
       });
-      localStorage.setItem("token", response.data.token);
-      console.log("registerUser response.data:", response.data);
-      return response.data;
-    } catch (err: unknown) {
+      // No need to handle token here; backend sets cookie
+      return { email, first_name, last_name }; // or return nothing if not needed
+    } catch (err) {
       return thunkAPI.rejectWithValue(getErrorMessage(err));
     }
   },
@@ -68,17 +48,36 @@ export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      console.log("fetchUser token:", token);
-      if (!token) {
-        return rejectWithValue("No token found");
+      console.log("[fetchUser] Fetching user...");
+      const response = await axios.get("/auth/user", {
+        withCredentials: true,
+      });
+      console.log("[fetchUser] Response:", response);
+      if (!response || !response.data) {
+        // Do not log as error, just handle gracefully
+        console.log("[fetchUser] No response data from server");
+        return rejectWithValue("No response data from server");
       }
-      const response = await axios.get("/auth/user");
-      console.log("fetchUser response:", response.data);
+      console.log("[fetchUser] Response Data:", response.data);
       return response.data;
-    } catch (err: unknown) {
-      console.error("fetchUser error:", err);
-      return rejectWithValue(getErrorMessage(err));
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        // Not logged in, handle gracefully
+        console.log("[fetchUser] Unauthorized");
+        return rejectWithValue("Unauthorized");
+      }
+      // Log unexpected errors
+      console.error("[fetchUser] Error:", err);
+      return rejectWithValue("Failed to fetch user");
     }
   },
 );
+
+export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+  try {
+    await axios.post("/auth/logout");
+    return true;
+  } catch {
+    return thunkAPI.rejectWithValue("Logout failed");
+  }
+});

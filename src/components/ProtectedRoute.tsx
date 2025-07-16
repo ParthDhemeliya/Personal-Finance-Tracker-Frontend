@@ -20,24 +20,24 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      const token = localStorage.getItem("token");
-
+      const token = getCookie("token");
+      console.log("doicyment", document.cookie);
+      console.log("token1", token);
       if (!token) {
-        // No token, redirect to login with current path
         const currentPath = window.location.pathname;
-        router.push(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+        router.replace(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
         return;
       }
 
-      // If we have a token but no user data and haven't fetched yet
       if (token && !user && !hasFetchedUser) {
         try {
           await dispatch(fetchUser()).unwrap();
         } catch {
-          // Token is invalid, remove it and redirect to login with current path
           localStorage.removeItem("token");
           const currentPath = window.location.pathname;
-          router.push(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+          router.replace(
+            `/login?redirectTo=${encodeURIComponent(currentPath)}`,
+          );
           return;
         }
       }
@@ -48,7 +48,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     checkAuthentication();
   }, [dispatch, router, user, hasFetchedUser]);
 
-  // Show loading while checking authentication
+  const getCookie = (name: string): string | null => {
+    if (typeof document === "undefined") return null;
+    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    return match ? match[2] : null;
+  };
+
   if (isCheckingAuth || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -60,7 +65,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // If no user after authentication check, don't render anything
   if (!user) {
     return null;
   }

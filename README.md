@@ -103,7 +103,7 @@ A modern, responsive web application built with Next.js and TypeScript for manag
    Create a `.env.local` file in the root directory:
 
    ```env
-   NEXT_PUBLIC_API_URL=https://your-backend-api-url.com
+   NEXT_PUBLIC_API_URL=https://personal-finance-tracker-backend-kin7.onrender.com/api
    ```
 
 4. **Start the development server**
@@ -269,5 +269,20 @@ For support and questions:
 ---
 
 **Built with ❤️ using Next.js, TypeScript, and Tailwind CSS**
-#   A u t o - d e p l o y   t e s t  
- 
+
+## ⚙️ Environment Variables
+
+This app uses environment variables for all API endpoints. **You must set the backend URL in your `.env` file:**
+
+```env
+NEXT_PUBLIC_API_URL=https://personal-finance-tracker-backend-kin7.onrender.com/api
+```
+
+- All API calls use this variable. No hardcoded URLs are present in the codebase.
+- If you change this value, restart your dev server.
+- For local development, you can point to your local backend by changing this value.
+
+## 🛠️ Troubleshooting
+
+- If you see network errors, double-check your `.env` file and ensure the backend is running and accessible.
+- Always restart the dev server after changing environment variables.
