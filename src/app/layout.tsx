@@ -3,6 +3,7 @@ import { Providers } from "../redux/provider";
 import "./globals.css";
 // import UserBootstrap from "../common/UserBootstrap";
 import { Toaster } from "react-hot-toast";
+import Head from "next/head";
 const inter = Inter({ subsets: ["latin"] });
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -13,6 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        <title>Personal Finance Tracker</title>
+        <meta
+          name="description"
+          content="Track your income, expenses, and savings goals with the Personal Finance Tracker app."
+        />
+      </Head>
       <body className={inter.className}>
         <Providers>
           {/* <UserBootstrap /> */}

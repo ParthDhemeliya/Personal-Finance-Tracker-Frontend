@@ -36,7 +36,6 @@ export const registerUser = createAsyncThunk(
         email,
         password,
       });
-      // No need to handle token here; backend sets cookie
       return { email, first_name, last_name }; // or return nothing if not needed
     } catch (err) {
       return thunkAPI.rejectWithValue(getErrorMessage(err));
@@ -49,9 +48,7 @@ export const fetchUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       console.log("[fetchUser] Fetching user...");
-      const response = await axios.get("/auth/user", {
-        withCredentials: true,
-      });
+      const response = await axios.get("/auth/user");
       console.log("[fetchUser] Response:", response);
       if (!response || !response.data) {
         // Do not log as error, just handle gracefully

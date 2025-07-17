@@ -29,54 +29,48 @@ import type {
   Stats,
 } from "@/types/Interface";
 
-type DashboardClientProps = {
-  user: User;
-  balance: Balance;
-  stats: Stats;
-};
-
-export default function DashboardClient({
-  user,
-  balance,
-  stats,
-}: DashboardClientProps) {
+export default function DashboardClient() {
   const dispatch = useAppDispatch();
   const { showError } = useToast();
 
-  // Use props for initial render, fallback to Redux for updates
-  const reduxUser = useAppSelector((state) => state.auth.user) || user;
-  const reduxBalance =
-    useAppSelector((state) => state.balance.amount) ?? balance.amount;
-  const percentChange =
-    useAppSelector((state) => state.balance.percentChange) ??
-    balance.percentChange;
-  const incomeAmount =
-    useAppSelector((state) => state.incomeStats.amount) ?? stats.income;
-  const incomePercentChange =
-    useAppSelector((state) => state.incomeStats.percentChange) ?? 0;
-  const expenseAmount =
-    useAppSelector((state) => state.expenseStats.amount) ?? stats.expense;
-  const expensePercentChange =
-    useAppSelector((state) => state.expenseStats.percentChange) ?? 0;
-
-  const [transactionModalOpen, setTransactionModalOpen] = useState<
-    false | "income" | "expense"
-  >(false);
-  const [userLoading, setUserLoading] = useState(false);
-
   useEffect(() => {
-    if (reduxUser) setUserLoading(false);
-  }, [reduxUser]);
+    dispatch(fetchBalanceThunk());
+    dispatch(fetchIncomeStatsThunk());
+    dispatch(fetchExpenseStatsThunk());
+    dispatch(fetchRecentTransactionsThunk(5));
+    dispatch(fetchSavingsGoalThunk());
+  }, [dispatch]);
 
-  useEffect(() => {
-    if (reduxUser) {
-      dispatch(fetchBalanceThunk());
-      dispatch(fetchIncomeStatsThunk());
-      dispatch(fetchExpenseStatsThunk());
-      dispatch(fetchSavingsGoalThunk());
-      dispatch(fetchRecentTransactionsThunk(5));
-    }
-  }, [dispatch, reduxUser]);
+  // Remove all local state for user, balance, stats, and loading/error related to the old fetch
+  // Use only Redux state for rendering
+  const reduxUser = useAppSelector((state) => state.auth.user);
+  const reduxBalance = useAppSelector((state) => state.balance.amount);
+  const percentChange = useAppSelector((state) => state.balance.percentChange);
+  const incomeAmount = useAppSelector((state) => state.incomeStats.amount);
+  const incomePercentChange = useAppSelector(
+    (state) => state.incomeStats.percentChange,
+  );
+  const expenseAmount = useAppSelector((state) => state.expenseStats.amount);
+  const expensePercentChange = useAppSelector(
+    (state) => state.expenseStats.percentChange,
+  );
+
+  const balanceLoading = useAppSelector((state) => state.balance.loading);
+  const balanceError = useAppSelector((state) => state.balance.error);
+  const incomeStatsLoading = useAppSelector(
+    (state) => state.incomeStats.loading,
+  );
+  const incomeStatsError = useAppSelector((state) => state.incomeStats.error);
+  const expenseStatsLoading = useAppSelector(
+    (state) => state.expenseStats.loading,
+  );
+  const expenseStatsError = useAppSelector((state) => state.expenseStats.error);
+
+  const isLoading = balanceLoading || incomeStatsLoading || expenseStatsLoading;
+  const errorMsg = balanceError || incomeStatsError || expenseStatsError;
+
+  // Remove the loading/error UI based on Redux state
+  // Restore the dashboard to always render the main content
 
   const handleTransactionSubmit = async (
     entry: Omit<IncomeEntry, "_id"> | Omit<ExpenseEntry, "_id">,
@@ -99,16 +93,9 @@ export default function DashboardClient({
     }
   };
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const [transactionModalOpen, setTransactionModalOpen] = useState<
+    false | "income" | "expense"
+  >(false);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 pt-14">

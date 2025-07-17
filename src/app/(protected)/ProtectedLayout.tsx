@@ -1,7 +1,6 @@
-// src/app/(protected)/ProtectedLayout.tsx
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
+// ProtectedLayout component to ensure user is authenticated
 export default async function ProtectedLayout({
   children,
 }: {

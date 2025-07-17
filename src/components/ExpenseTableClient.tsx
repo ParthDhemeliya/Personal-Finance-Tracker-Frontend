@@ -14,23 +14,14 @@ import {
   updateExpense,
 } from "@/redux/expense/expense.thunks";
 import { setPage } from "@/redux/expense/expense.slice";
-import { hydrate } from "@/redux/expense/expense.slice";
 import type { ITransaction } from "@/types/Transaction";
 import type { ExpenseEntry, IncomeEntry } from "@/types/Interface";
-import { Wallet, IndianRupee } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { mapITransactionToExpenseEntry } from "@/utils/transactionMapper";
 
 const PAGE_LIMIT = 6;
 
-type ExpenseTableClientProps = {
-  initialExpenses: ITransaction[];
-  initialTotalExpense: number;
-};
-
-export default function ExpenseTableClient({
-  initialExpenses,
-  initialTotalExpense,
-}: ExpenseTableClientProps) {
+export default function ExpenseTableClient() {
   const dispatch = useAppDispatch();
   const {
     data: expenses,
@@ -38,32 +29,19 @@ export default function ExpenseTableClient({
     totalPages,
     loading,
     total,
-    totalAmount,
   } = useAppSelector((state) => state.expenses);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<ITransaction | null>(null);
   const { showSuccess, showError } = useToast();
+  const [error, setError] = useState<string>("");
+  const totalExpense = useAppSelector((state) => state.expenses.totalAmount);
 
-  // Hydrate Redux state with initial SSR data on first mount
   useEffect(() => {
-    if (initialExpenses && initialExpenses.length > 0) {
-      const mappedExpenses = (initialExpenses as ITransaction[])
-        .filter((tx) => tx.type === "expense")
-        .map(mapITransactionToExpenseEntry);
-      dispatch(
-        hydrate({
-          data: mappedExpenses,
-          overallTotalExpense: initialTotalExpense,
-        }),
-      );
-    } else {
-      dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
-      dispatch(setPage(1));
-      dispatch(fetchTotalExpenses());
-    }
-  }, [dispatch, initialExpenses, initialTotalExpense]);
+    dispatch(fetchPaginatedExpenses({ page: 1, limit: PAGE_LIMIT }));
+    dispatch(fetchTotalExpenses());
+  }, [dispatch]);
 
   const handlePageChange = (page: number) => {
     dispatch(setPage(page));
@@ -118,16 +96,27 @@ export default function ExpenseTableClient({
     setModalOpen(true);
   };
 
-  const tableData: ExpenseEntry[] =
-    Array.isArray(expenses) && expenses.length > 0
-      ? (expenses as ITransaction[])
-          .filter((tx) => tx.type === "expense")
-          .map(mapITransactionToExpenseEntry)
-      : Array.isArray(initialExpenses) && initialExpenses.length > 0
-        ? (initialExpenses as ITransaction[])
-            .filter((tx) => tx.type === "expense")
-            .map(mapITransactionToExpenseEntry)
-        : [];
+  if (loading) {
+    return (
+      <p className="text-center text-gray-500 italic">Loading expenses...</p>
+    );
+  }
+  if (error === "unauthorized") {
+    return (
+      <div className="text-center mt-10 text-red-500">
+        <h1 className="text-2xl font-semibold">Unauthorized</h1>
+        <p>You must be logged in to view the expense page.</p>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="text-center mt-10 text-red-500">
+        <h1 className="text-2xl font-semibold">Error</h1>
+        <p>Something went wrong while loading the expense page.</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -155,29 +144,23 @@ export default function ExpenseTableClient({
         <h2 className="text-lg font-semibold text-gray-800">
           Total Expense:{" "}
           <span className="text-red-700 font-bold">
-            ₹ {initialTotalExpense.toLocaleString()}
+            {totalExpense.toLocaleString()}
           </span>
         </h2>
       </div>
-      {loading ? (
-        <p className="text-center text-gray-500 italic">Loading expenses...</p>
-      ) : (
-        <>
-          <TransactionTable
-            data={tableData}
-            type="expense"
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-          />
-          <Pagination
-            page={currentPage || 1}
-            totalPages={totalPages || 1}
-            onPageChange={handlePageChange}
-            total={total || initialExpenses.length}
-            pageSize={PAGE_LIMIT}
-          />
-        </>
-      )}
+      <TransactionTable
+        data={expenses}
+        type="expense"
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+      />
+      <Pagination
+        page={currentPage || 1}
+        totalPages={totalPages || 1}
+        onPageChange={handlePageChange}
+        total={total || expenses.length}
+        pageSize={PAGE_LIMIT}
+      />
       {modalOpen && (
         <TransactionModal
           onClose={() => {

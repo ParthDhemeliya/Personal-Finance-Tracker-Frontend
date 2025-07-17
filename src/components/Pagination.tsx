@@ -6,6 +6,7 @@ interface PaginationProps {
   pageSize: number; // Added pageSize prop
 }
 
+// pagination component
 const Pagination = ({
   page,
   totalPages,

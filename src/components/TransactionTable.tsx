@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { IndianRupee, Pencil, Trash2 } from "lucide-react";
+import { IndianRupee, Pencil, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import type { ITransaction, TransactionType } from "../types/Transaction";
 import type { TransactionEntry } from "../types/Interface";
 import { mapIncomeEntryToTransaction } from "../utils/transactionMapper";
+import { useAppSelector } from "../hooks/useTypedSelector";
 
 interface TransactionTableProps {
   data: TransactionEntry[];
@@ -10,7 +11,8 @@ interface TransactionTableProps {
   onDelete: (id: string) => void;
   onEdit?: (tx: ITransaction) => void;
 }
-
+//  TransactionTable component to display transactions in a table format
+// This component is used for both income and expense transactions
 const TransactionTable = ({
   data = [],
   type,
@@ -18,7 +20,62 @@ const TransactionTable = ({
   onEdit,
 }: TransactionTableProps) => {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: "amount" | "date";
+    direction: "asc" | "desc";
+  }>({ key: "date", direction: "desc" });
 
+  const totalIncome = useAppSelector(
+    (state) => state.income.overallTotalIncome,
+  );
+  const totalExpense = useAppSelector((state) => state.expenses.totalAmount);
+
+  // Add type guard for MongoDB Decimal128 objects
+  function isDecimalObj(val: any): val is { $numberDecimal: string } {
+    return val && typeof val === "object" && "$numberDecimal" in val;
+  }
+
+  // Sorting logic for table data based on amount or date
+  const sortedData = [...data].sort((a, b) => {
+    if (sortConfig.key === "amount") {
+      const aAmount =
+        typeof a.amount === "number"
+          ? a.amount
+          : isDecimalObj(a.amount)
+            ? parseFloat(
+                (a.amount as { $numberDecimal: string }).$numberDecimal,
+              )
+            : 0;
+      const bAmount =
+        typeof b.amount === "number"
+          ? b.amount
+          : isDecimalObj(b.amount)
+            ? parseFloat(
+                (b.amount as { $numberDecimal: string }).$numberDecimal,
+              )
+            : 0;
+      return sortConfig.direction === "asc"
+        ? aAmount - bAmount
+        : bAmount - aAmount;
+    } else if (sortConfig.key === "date") {
+      const aDate = new Date(a.date).getTime();
+      const bDate = new Date(b.date).getTime();
+      return sortConfig.direction === "asc" ? aDate - bDate : bDate - aDate;
+    }
+    return 0;
+  });
+
+  const handleSort = (key: "amount" | "date") => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  // Render the category name based on the transaction type (income/expense)
+  // Handles both string and object category representations
   const renderCategoryName = (tx: TransactionEntry) => {
     if (tx.type === "income") {
       if (typeof tx.incomeSource === "string") return tx.incomeSource;
@@ -37,6 +94,7 @@ const TransactionTable = ({
     return "—";
   };
 
+  // Handle delete confirmation
   const handleDeleteConfirm = () => {
     if (deleteTargetId) {
       onDelete(deleteTargetId);
@@ -54,11 +112,33 @@ const TransactionTable = ({
               <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
                 {type === "income" ? "Source" : "Category"}
               </th>
-              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+              <th
+                className="px-4 md:px-6 py-4 text-left whitespace-nowrap cursor-pointer select-none"
+                onClick={() => handleSort("amount")}
+              >
                 Amount
+                <span className="inline-flex flex-row ml-1 align-middle">
+                  <ArrowUp
+                    className={`w-4 h-4 ${sortConfig.key === "amount" && sortConfig.direction === "asc" ? "text-blue-600 font-bold" : "text-gray-400"}`}
+                  />
+                  <ArrowDown
+                    className={`w-4 h-4 ${sortConfig.key === "amount" && sortConfig.direction === "desc" ? "text-blue-600 font-bold" : "text-gray-400"}`}
+                  />
+                </span>
               </th>
-              <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
+              <th
+                className="px-4 md:px-6 py-4 text-left whitespace-nowrap cursor-pointer select-none"
+                onClick={() => handleSort("date")}
+              >
                 Date
+                <span className="inline-flex flex-row ml-1 align-middle">
+                  <ArrowUp
+                    className={`w-4 h-4 ${sortConfig.key === "date" && sortConfig.direction === "asc" ? "text-blue-600 font-bold" : "text-gray-400"}`}
+                  />
+                  <ArrowDown
+                    className={`w-4 h-4 ${sortConfig.key === "date" && sortConfig.direction === "desc" ? "text-blue-600 font-bold" : "text-gray-400"}`}
+                  />
+                </span>
               </th>
               <th className="px-4 md:px-6 py-4 text-left whitespace-nowrap">
                 Description
@@ -70,7 +150,7 @@ const TransactionTable = ({
           </thead>
 
           <tbody>
-            {data.slice(0, 6).map((tx, idx) => (
+            {sortedData.slice(0, 6).map((tx, idx) => (
               <tr
                 key={tx._id}
                 className={`${
@@ -92,7 +172,17 @@ const TransactionTable = ({
                 <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-1 md:gap-2">
                     <IndianRupee className="w-4 h-4 text-gray-500" />
-                    <span>{tx.amount.toLocaleString()}</span>
+                    <span>
+                      {typeof tx.amount === "number"
+                        ? tx.amount.toLocaleString()
+                        : isDecimalObj(tx.amount) &&
+                            typeof (tx.amount as any).$numberDecimal ===
+                              "string"
+                          ? parseFloat(
+                              (tx.amount as any).$numberDecimal,
+                            ).toLocaleString()
+                          : "0"}
+                    </span>
                   </div>
                 </td>
 
@@ -138,7 +228,7 @@ const TransactionTable = ({
               </tr>
             ))}
 
-            {data.length === 0 && (
+            {sortedData.length === 0 && (
               <tr>
                 <td
                   colSpan={5}
@@ -151,7 +241,15 @@ const TransactionTable = ({
           </tbody>
         </table>
       </div>
-
+      {/* Show total below the table for desktop */}
+      <div className="hidden md:block w-full text-right mt-2 text-lg font-semibold text-blue-800">
+        {type === "income" && (
+          <span>Total Income: {totalIncome.toLocaleString()}</span>
+        )}
+        {type === "expense" && (
+          <span>Total Expense: {totalExpense.toLocaleString()}</span>
+        )}
+      </div>
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {data.slice(0, 6).map((tx) => (
@@ -234,6 +332,15 @@ const TransactionTable = ({
             No {type} records found.
           </div>
         )}
+        {/* Show total below the cards for mobile */}
+        <div className="w-full text-right mt-4 text-lg font-semibold text-blue-800">
+          {type === "income" && (
+            <span>Total Income: {totalIncome.toLocaleString()}</span>
+          )}
+          {type === "expense" && (
+            <span>Total Expense: {totalExpense.toLocaleString()}</span>
+          )}
+        </div>
       </div>
 
       {deleteTargetId && (

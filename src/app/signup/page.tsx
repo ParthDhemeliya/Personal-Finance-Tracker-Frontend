@@ -75,7 +75,10 @@ const SignUp = () => {
       );
 
       if (registerUser.fulfilled.match(resultAction)) {
+        const token = resultAction.payload.token;
+        localStorage.setItem("token", token); // or sessionStorage.setItem
         showSuccess("Account created successfully! Welcome to My Budget!");
+
         router.push("/dashboard");
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

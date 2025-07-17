@@ -35,15 +35,11 @@ const Login = () => {
 
     return errors;
   };
-
-  //  // Add this import
-
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
     const errors = validateForm();
-
-    console.log("[Login] handleSubmit called");
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       console.log("[Login] Validation failed:", errors);
@@ -52,7 +48,6 @@ const Login = () => {
 
     try {
       setIsSubmitting(true);
-      console.log("[Login] Dispatching loginUser...");
       const res = await dispatch(
         loginUser({
           email,
@@ -61,10 +56,12 @@ const Login = () => {
           last_name: "",
         }),
       );
-      console.log("[Login] Dispatch result (loginUser):", res);
 
       if (loginUser.fulfilled.match(res)) {
         // Fetch full user info before redirect
+        const token: string = res.payload.token;
+        localStorage.setItem("token", token);
+        console.log("[Login] Token received:", token);
 
         const userRes = await dispatch(fetchUser());
         console.log("[Login] Dispatch result (fetchUser):", userRes);
@@ -73,7 +70,7 @@ const Login = () => {
       } else {
         const payload = (res as { payload?: { message?: string } }).payload;
         console.log("[Login] Login rejected, payload:", payload);
-        if (payload?.message?.toLowerCase().includes("invalid credentials")) {
+        if (payload?.message?.toLowerCase().includes("invalid zcredentials")) {
           showError("Invalid email or password. Please try again.");
           setFieldErrors({
             general: "Invalid email or password. Please try again.",

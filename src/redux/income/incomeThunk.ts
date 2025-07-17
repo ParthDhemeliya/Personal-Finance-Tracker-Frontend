@@ -80,7 +80,12 @@ export const fetchTotalIncome = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axios.get("/v1/incomes/total");
-      return res.data.total;
+      const total = res.data.total;
+      return typeof total === "number"
+        ? total
+        : total && typeof total.$numberDecimal === "string"
+          ? parseFloat(total.$numberDecimal)
+          : 0;
     } catch (err: unknown) {
       return thunkAPI.rejectWithValue(getErrorMessage(err));
     }

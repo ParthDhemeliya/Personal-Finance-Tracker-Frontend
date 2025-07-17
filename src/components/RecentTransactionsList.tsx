@@ -2,13 +2,17 @@ import { TrendingUp, CreditCard } from "lucide-react";
 import { useAppSelector } from "../hooks/useTypedSelector";
 import type { ITransaction } from "../types/Transaction";
 
+// RecentTransactionsList component to display recent transactions
+// This component fetches and displays the most recent transactions
 const RecentTransactionsList = () => {
   const recentTransactions = useAppSelector(
     (state) => state.recentTransactions.data as ITransaction[],
   );
+  // Check if recent transactions are loading or if there's an error
   const recentTransactionsLoading = useAppSelector(
     (state) => state.recentTransactions.loading,
   );
+  // Error message if fetching recent transactions fails
   const recentTransactionsError = useAppSelector(
     (state) => state.recentTransactions.error,
   );

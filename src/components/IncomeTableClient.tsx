@@ -16,20 +16,12 @@ import {
 import { setPage } from "@/redux/income/incomeSlice";
 import type { ITransaction } from "@/types/Transaction";
 import type { IncomeEntry, ExpenseEntry } from "@/types/Interface";
-import { hydrate } from "@/redux/income/incomeSlice";
-import { mapITransactionToIncomeEntry } from "@/utils/transactionMapper";
 import { Wallet } from "lucide-react";
 import { IndianRupee } from "lucide-react";
 
 const PAGE_LIMIT = 6;
 
-export default function IncomeTableClient({
-  initialIncomes,
-  initialTotalIncome,
-}: {
-  initialIncomes: ITransaction[];
-  initialTotalIncome: number;
-}) {
+export default function IncomeTableClient() {
   const dispatch = useAppDispatch();
   const {
     data: incomes,
@@ -43,26 +35,14 @@ export default function IncomeTableClient({
   const [selectedTransaction, setSelectedTransaction] =
     useState<ITransaction | null>(null);
   const { showSuccess, showError } = useToast();
+  const totalIncome = useAppSelector(
+    (state) => state.income.overallTotalIncome,
+  );
 
-  // Hydrate Redux state with initial SSR data on first mount
   useEffect(() => {
-    if (initialIncomes && initialIncomes.length > 0) {
-      // Map initialIncomes to IncomeEntry[] before hydrating
-      const mappedIncomes = (initialIncomes as ITransaction[])
-        .filter((tx) => tx.type === "income")
-        .map(mapITransactionToIncomeEntry);
-      dispatch(
-        hydrate({
-          data: mappedIncomes,
-          overallTotalIncome: initialTotalIncome,
-        }),
-      );
-    } else {
-      dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
-      dispatch(setPage(1));
-      dispatch(fetchTotalIncome());
-    }
-  }, [dispatch, initialIncomes, initialTotalIncome]);
+    dispatch(fetchPaginatedIncomes({ page: 1, limit: PAGE_LIMIT }));
+    dispatch(fetchTotalIncome());
+  }, [dispatch]);
 
   const handlePageChange = (page: number) => {
     dispatch(setPage(page));
@@ -113,19 +93,11 @@ export default function IncomeTableClient({
     setModalOpen(true);
   };
 
-  console.log("incomes from Redux:", incomes);
-  console.log("initialIncomes from SSR:", initialIncomes);
-
-  const tableData: IncomeEntry[] =
-    incomes && incomes.length > 0
-      ? (incomes as ITransaction[])
-          .filter((tx) => tx.type === "income")
-          .map(mapITransactionToIncomeEntry)
-      : (initialIncomes as ITransaction[])
-          .filter((tx) => tx.type === "income")
-          .map(mapITransactionToIncomeEntry);
-
-  console.log("tableData for TransactionTable:", tableData);
+  if (loading) {
+    return (
+      <p className="text-center text-gray-500 italic">Loading incomes...</p>
+    );
+  }
 
   return (
     <>
@@ -153,29 +125,23 @@ export default function IncomeTableClient({
         <h2 className="text-lg font-semibold text-gray-800">
           Total Income:{" "}
           <span className="text-blue-700 font-bold">
-            {initialTotalIncome.toLocaleString()}
+            {totalIncome.toLocaleString()}
           </span>
         </h2>
       </div>
-      {loading ? (
-        <p className="text-center text-gray-500 italic">Loading incomes...</p>
-      ) : (
-        <>
-          <TransactionTable
-            data={tableData}
-            type="income"
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-          />
-          <Pagination
-            page={currentPage || 1}
-            totalPages={totalPages || 1}
-            onPageChange={handlePageChange}
-            total={total || initialIncomes.length}
-            pageSize={PAGE_LIMIT}
-          />
-        </>
-      )}
+      <TransactionTable
+        data={incomes}
+        type="income"
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+      />
+      <Pagination
+        page={currentPage || 1}
+        totalPages={totalPages || 1}
+        onPageChange={handlePageChange}
+        total={total || incomes.length}
+        pageSize={PAGE_LIMIT}
+      />
       {modalOpen && (
         <TransactionModal
           onClose={() => {

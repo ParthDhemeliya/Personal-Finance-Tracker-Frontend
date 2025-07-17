@@ -9,7 +9,7 @@ import { fetchUser } from "@/redux/auth/authThunk";
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
-
+// ProtectedRoute component to check authentication
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -20,9 +20,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      const token = getCookie("token");
-      console.log("doicyment", document.cookie);
-      console.log("token1", token);
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (!token) {
         const currentPath = window.location.pathname;
         router.replace(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
@@ -38,21 +37,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           router.replace(
             `/login?redirectTo=${encodeURIComponent(currentPath)}`,
           );
-          return;
         }
       }
-
       setIsCheckingAuth(false);
     };
-
     checkAuthentication();
   }, [dispatch, router, user, hasFetchedUser]);
 
-  const getCookie = (name: string): string | null => {
-    if (typeof document === "undefined") return null;
-    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-    return match ? match[2] : null;
-  };
+  // Removed getCookie utility and document.cookie usage as cookies are no longer used for authentication.
 
   if (isCheckingAuth || loading) {
     return (

@@ -27,7 +27,8 @@ interface TransactionModalProps {
 }
 
 const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id.trim());
-
+// TransactionModal component for adding or editing transactions
+// This component handles both adding new transactions and editing existing ones
 const TransactionModal = ({
   onClose,
   onSubmit,
@@ -46,6 +47,8 @@ const TransactionModal = ({
   const [customCategoryName, setCustomCategoryName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { showSuccess, showError } = useToast();
+  // Form setup using react-hook-form
+  // This handles form validation and submission
   const {
     register,
     handleSubmit,
@@ -111,11 +114,16 @@ const TransactionModal = ({
   // We watch categoryId so we can reset customCategoryName when it changes away from "custom"
   const watchedCategoryId = watch("categoryId");
 
+  // Reset customCategoryName when categoryId changes away from "custom"
+  // This ensures that if the user selects a predefined category, the custom name is cleared
   useEffect(() => {
     if (watchedCategoryId !== "custom" && mode !== "edit") {
       setCustomCategoryName("");
     }
   }, [watchedCategoryId, mode]);
+
+  // Handle form submission
+  // This function is called when the form is submitted
   const onSubmitHandler = async (data: FormData) => {
     let finalCategoryId = data.categoryId;
     if (data.categoryId === "custom" && customCategoryName.trim()) {

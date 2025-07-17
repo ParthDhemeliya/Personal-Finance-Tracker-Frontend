@@ -25,6 +25,32 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      // Disallow console.log in production
+      "no-console": ["error", { allow: ["warn", "error", "info"] }],
+      // Prevent unused variables
+      "no-unused-vars": "error",
+      // Enforce const where variables are not reassigned
+      "prefer-const": "error",
+      // Enforce explicit typing (strict mode in tsconfig)
+      "@typescript-eslint/no-implicit-any": "error",
+      // Organize imports alphabetically and by type
+      "sort-imports": [
+        "error",
+        {
+          ignoreCase: false,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+          memberSyntaxSortOrder: ["none", "all", "multiple", "single"],
+        },
+      ],
+      // Enforce shorthand for boolean props in JSX
+      "react/jsx-boolean-value": ["error", "never"],
+      // Ensure prop validation clarity even with TypeScript
+      "react/prop-types": "warn",
+      // Ensure functions return consistently
+      "consistent-return": "error",
+      // Enforce strict equality
+      eqeqeq: ["error", "always"],
     },
   },
 );
