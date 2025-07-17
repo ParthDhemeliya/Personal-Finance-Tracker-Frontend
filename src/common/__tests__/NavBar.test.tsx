@@ -4,9 +4,9 @@ import NavBar from "../NavBar";
 
 jest.mock("../../hooks/useTypedSelector", () => ({
   useAppSelector: jest.fn(() => ({
-    first_name: "Test",
-    last_name: "User",
-    email: "test@example.com",
+    user: { first_name: "Test", last_name: "User", email: "test@example.com" },
+    hasFetchedUser: true,
+    loading: false,
   })),
 }));
 jest.mock("../../hooks/useTypedDispatch", () => ({
