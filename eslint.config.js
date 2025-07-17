@@ -9,7 +9,12 @@ export default tseslint.config(
     ignores: ["dist", ".next", "node_modules", "out", "build", "coverage"],
   },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+      "next",
+      "next/core-web-vitals",
+    ],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
@@ -31,8 +36,6 @@ export default tseslint.config(
       "no-unused-vars": "error",
       // Enforce const where variables are not reassigned
       "prefer-const": "error",
-      // Enforce explicit typing (strict mode in tsconfig)
-      "@typescript-eslint/no-implicit-any": "error",
       // Organize imports alphabetically and by type
       "sort-imports": [
         "error",
