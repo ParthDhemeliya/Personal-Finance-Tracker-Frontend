@@ -33,12 +33,10 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
-        console.log("[authSlice] loginUser.pending");
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log("[authSlice] loginUser.fulfilled", action);
         state.loading = false;
         // Only update user email if available; rest will be filled by fetchUser
         state.user = action.payload?.email
@@ -54,18 +52,15 @@ const authSlice = createSlice({
       })
 
       .addCase(loginUser.rejected, (state, action) => {
-        console.log("[authSlice] loginUser.rejected", action);
         state.loading = false;
         state.error = action.payload as string;
       })
 
       .addCase(registerUser.pending, (state) => {
-        console.log("[authSlice] registerUser.pending");
         state.loading = true;
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        console.log("[authSlice] registerUser.fulfilled", action);
         state.loading = false;
         // Only update user info if available
         state.user = action.payload?.email
@@ -80,17 +75,14 @@ const authSlice = createSlice({
         state.hasFetchedUser = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
-        console.log("[authSlice] registerUser.rejected", action);
         state.loading = false;
         state.error = action.payload as string;
       })
 
       .addCase(fetchUser.pending, (state) => {
-        console.log("[authSlice] fetchUser.pending");
         state.loading = true;
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
-        console.log("[authSlice] fetchUser.fulfilled", action);
         const user = action.payload;
         state.loading = false;
         state.user = {
@@ -102,7 +94,6 @@ const authSlice = createSlice({
         state.hasFetchedUser = true;
       })
       .addCase(fetchUser.rejected, (state, action) => {
-        console.log("[authSlice] fetchUser.rejected", action);
         state.loading = false;
         state.error = action.payload as string;
         state.user = null;

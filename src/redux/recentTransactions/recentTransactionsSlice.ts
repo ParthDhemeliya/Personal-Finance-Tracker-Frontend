@@ -17,7 +17,9 @@ const initialState: RecentTransactionsState = {
 const recentTransactionsSlice = createSlice({
   name: "recentTransactions",
   initialState,
-  reducers: {},
+  reducers: {
+    resetRecentTransactionsState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchRecentTransactionsThunk.pending, (state) => {
@@ -34,5 +36,7 @@ const recentTransactionsSlice = createSlice({
       });
   },
 });
+
+export const { resetRecentTransactionsState } = recentTransactionsSlice.actions;
 
 export default recentTransactionsSlice.reducer;

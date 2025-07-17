@@ -8,7 +8,6 @@ export default async function ProtectedLayout({
 }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
-  console.log("ProtectedLayout token", token);
 
   if (!token) {
     redirect("/login");

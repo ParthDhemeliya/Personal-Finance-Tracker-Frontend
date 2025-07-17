@@ -241,15 +241,6 @@ const TransactionTable = ({
           </tbody>
         </table>
       </div>
-      {/* Show total below the table for desktop */}
-      <div className="hidden md:block w-full text-right mt-2 text-lg font-semibold text-blue-800">
-        {type === "income" && (
-          <span>Total Income: {totalIncome.toLocaleString()}</span>
-        )}
-        {type === "expense" && (
-          <span>Total Expense: {totalExpense.toLocaleString()}</span>
-        )}
-      </div>
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {data.slice(0, 6).map((tx) => (

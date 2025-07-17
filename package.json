@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "prepare": "husky install",
+    "prepare": "husky",
     "husky:install": "husky install",
     "husky:provide": "npx husky add .husky/pre-commit 'yarn lint-staged'",
     "lint-staged": "lint-staged",

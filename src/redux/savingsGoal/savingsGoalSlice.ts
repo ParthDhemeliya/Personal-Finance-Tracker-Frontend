@@ -19,7 +19,9 @@ const initialState: SavingsGoalState = {
 const savingsGoalSlice = createSlice({
   name: "savingsGoal",
   initialState,
-  reducers: {},
+  reducers: {
+    resetSavingsGoalState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchSavingsGoalThunk.pending, (state) => {
@@ -52,3 +54,4 @@ const savingsGoalSlice = createSlice({
 });
 
 export default savingsGoalSlice.reducer;
+export const { resetSavingsGoalState } = savingsGoalSlice.actions;

@@ -19,7 +19,9 @@ const initialState: BalanceState = {
 const balanceSlice = createSlice({
   name: "balance",
   initialState,
-  reducers: {},
+  reducers: {
+    resetBalanceState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchBalanceThunk.pending, (state) => {
@@ -45,3 +47,4 @@ const balanceSlice = createSlice({
 });
 
 export default balanceSlice.reducer;
+export const { resetBalanceState } = balanceSlice.actions;

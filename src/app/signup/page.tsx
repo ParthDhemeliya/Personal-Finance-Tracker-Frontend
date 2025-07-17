@@ -7,6 +7,7 @@ import { useAppDispatch } from "../../hooks/useTypedDispatch";
 import { registerUser } from "../../redux/auth/authThunk";
 import { motion } from "framer-motion";
 import useToast from "../../hooks/useToast";
+import { loginUser } from "../../redux/auth/authThunk";
 
 const SignUp = () => {
   const router = useRouter();
@@ -75,11 +76,24 @@ const SignUp = () => {
       );
 
       if (registerUser.fulfilled.match(resultAction)) {
-        const token = resultAction.payload.token;
-        localStorage.setItem("token", token); // or sessionStorage.setItem
-        showSuccess("Account created successfully! Welcome to My Budget!");
-
-        router.push("/dashboard");
+        // Automatically log in after signup
+        const loginResult = await dispatch(
+          loginUser({
+            email: form.email,
+            password: form.password,
+            first_name: form.first_name,
+            last_name: form.last_name,
+          }),
+        );
+        if (loginUser.fulfilled.match(loginResult)) {
+          showSuccess("Account created successfully! Welcome to My Budget!");
+          router.push("/dashboard");
+        } else {
+          showError(
+            "Signup succeeded but login failed. Please log in manually.",
+          );
+          router.push("/login");
+        }
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload = (resultAction as any).payload;

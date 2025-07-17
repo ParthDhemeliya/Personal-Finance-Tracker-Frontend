@@ -18,7 +18,9 @@ const initialState: IncomeStatsState = {
 const incomeStatsSlice = createSlice({
   name: "incomeStats",
   initialState,
-  reducers: {},
+  reducers: {
+    resetIncomeStatsState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchIncomeStatsThunk.pending, (state) => {
@@ -39,3 +41,4 @@ const incomeStatsSlice = createSlice({
 });
 
 export default incomeStatsSlice.reducer;
+export const { resetIncomeStatsState } = incomeStatsSlice.actions;

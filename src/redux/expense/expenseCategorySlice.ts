@@ -21,7 +21,9 @@ const initialState: ExpenseCategoryState = {
 const expenseCategorySlice = createSlice({
   name: "expenseCategory",
   initialState,
-  reducers: {},
+  reducers: {
+    resetExpenseCategoryState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchExpenseCategorySummaryThunk.pending, (state) => {
@@ -40,3 +42,5 @@ const expenseCategorySlice = createSlice({
 });
 
 export default expenseCategorySlice.reducer;
+
+export const { resetExpenseCategoryState } = expenseCategorySlice.actions;

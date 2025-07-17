@@ -44,6 +44,7 @@ const expenseSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    resetExpenseState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
@@ -98,5 +99,5 @@ const expenseSlice = createSlice({
   },
 });
 
-export const { setPage } = expenseSlice.actions;
+export const { setPage, resetExpenseState } = expenseSlice.actions;
 export default expenseSlice.reducer;

@@ -42,7 +42,6 @@ const Login = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      console.log("[Login] Validation failed:", errors);
       return;
     }
 
@@ -61,15 +60,13 @@ const Login = () => {
         // Fetch full user info before redirect
         const token: string = res.payload.token;
         localStorage.setItem("token", token);
-        console.log("[Login] Token received:", token);
 
         const userRes = await dispatch(fetchUser());
-        console.log("[Login] Dispatch result (fetchUser):", userRes);
+
         showSuccess("Login successful! Welcome back!");
         router.push("/dashboard");
       } else {
         const payload = (res as { payload?: { message?: string } }).payload;
-        console.log("[Login] Login rejected, payload:", payload);
         if (payload?.message?.toLowerCase().includes("invalid zcredentials")) {
           showError("Invalid email or password. Please try again.");
           setFieldErrors({
@@ -91,14 +88,12 @@ const Login = () => {
         }
       }
     } catch (err) {
-      console.log("[Login] Catch block error:", err);
       showError("Something went wrong. Please try again later.");
       setFieldErrors({
         general: "Something went wrong. Please try again later.",
       });
     } finally {
       setIsSubmitting(false);
-      console.log("[Login] handleSubmit finished");
     }
   };
 

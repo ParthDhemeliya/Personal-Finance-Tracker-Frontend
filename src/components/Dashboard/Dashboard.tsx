@@ -14,7 +14,6 @@ interface DashboardProps {
 export default function Dashboard({ user, balance, stats }: DashboardProps) {
   return (
     <div>
-      console.log("I am on Dashboard Page");
       <h1>
         {user?.first_name
           ? `Welcome back, ${user.first_name}!`

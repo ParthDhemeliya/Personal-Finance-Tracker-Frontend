@@ -45,6 +45,7 @@ const incomeSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.currentPage = action.payload;
     },
+    resetIncomeState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
@@ -109,5 +110,5 @@ const incomeSlice = createSlice({
   },
 });
 
-export const { setPage } = incomeSlice.actions;
+export const { setPage, resetIncomeState } = incomeSlice.actions;
 export default incomeSlice.reducer;

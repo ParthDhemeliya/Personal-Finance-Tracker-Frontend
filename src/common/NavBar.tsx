@@ -23,9 +23,26 @@ const NavBar = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const user = useAppSelector((state: RootState) => state.auth.user);
+  const { user, loading, hasFetchedUser } = useAppSelector(
+    (state: RootState) => state.auth,
+  );
   const userFirstName = user?.first_name;
   const userFullName = `${user?.first_name ?? ""} ${user?.last_name ?? ""}`;
+
+  // Show loading state if user info is not loaded
+  if (!hasFetchedUser || loading) {
+    return (
+      <nav className="fixed top-0 left-0 w-full z-50 bg-blue-50 border-b border-blue-100/80">
+        <div className="h-14 px-6 flex items-center justify-between">
+          <div className="animate-pulse flex items-center gap-2">
+            <div className="h-6 w-6 bg-blue-200 rounded-full" />
+            <div className="h-6 w-32 bg-blue-200 rounded" />
+          </div>
+          <div className="h-8 w-32 bg-blue-200 rounded animate-pulse" />
+        </div>
+      </nav>
+    );
+  }
 
   const handleLogout = async () => {
     await dispatch(logout());
