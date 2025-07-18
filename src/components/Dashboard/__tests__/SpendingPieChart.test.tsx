@@ -11,7 +11,11 @@ jest.mock("../../../hooks/useTypedSelector", () => ({
 
 describe("SpendingPieChart", () => {
   it("renders the spending by category title", () => {
-    render(<SpendingPieChart />);
+    render(
+      <div style={{ width: 400, height: 400 }}>
+        <SpendingPieChart />
+      </div>,
+    );
     expect(screen.getByText("Spending by Category")).toBeInTheDocument();
   });
 });

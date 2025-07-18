@@ -286,3 +286,39 @@ NEXT_PUBLIC_API_URL=https://personal-finance-tracker-backend-kin7.onrender.com/a
 
 - If you see network errors, double-check your `.env` file and ensure the backend is running and accessible.
 - Always restart the dev server after changing environment variables.
+
+---
+
+## Why This Happens
+
+- Your `node_modules` directory is being copied from the `deps` stage, but the `next` package (and possibly other devDependencies) is not installed in production by default.
+- If `next` is listed as a `devDependency` in your `package.json`, and you run `pnpm install --frozen-lockfile` without the `--prod` flag, it should still be installed. But if you use `pnpm install --prod`, devDependencies (like `next`) are not installed, so the `next` binary is missing.
+
+---
+
+## How to Fix
+
+1. **Add Next.js as a dependency:**
+
+Run:
+
+```sh
+pnpm add next
+```
+
+or, if you want it as a devDependency:
+
+```sh
+pnpm add -D next
+```
+
+2. **Rebuild your Docker image:**
+
+```sh
+docker build --no-cache -t my-nextjs-app .
+```
+
+---
+
+**Would you like me to add `next` to your dependencies and update your lockfile for you?**  
+This will resolve the Docker build error and allow your app to build and run in Docker.

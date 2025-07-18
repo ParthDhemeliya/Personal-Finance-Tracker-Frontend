@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+out
+build
+coverage
+Dockerfile
+.dockerignore
+.git
+.gitignore
+npm-debug.log
+pnpm-debug.log 
